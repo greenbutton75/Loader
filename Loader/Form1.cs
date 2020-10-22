@@ -821,7 +821,7 @@ Inflammatory bowel disease, type 1 diabetes, and VTE might predispose to RA deve
                         }
 
                         //Normalize
-                        SENTENCE = new string(SENTENCE.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                        SENTENCE = new string(SENTENCE.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
 
                         if (sentence_modified > 0) content.Add(SENTENCE); // do not add unmodified sentences - without CUI
 
@@ -3190,7 +3190,7 @@ new Task(() => ProcessEntityChunk(333000001,343000000))
             //Testilka
             string myCharCollection = "[acute disseminated form of C0023381 (C0023381)].";
 
-            myCharCollection = new string(myCharCollection.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+            myCharCollection = new string(myCharCollection.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
 
 
             // ZeroRPC  TO RUN IT -- C:\Anaconda3\envs\ttt\python.exe D:\PubMed\WillAInode.js\server\py\server.py
@@ -4966,7 +4966,9 @@ new Task(() => ProcessEntityChunk(333000001,343000000))
 
                     Name = Name.ReplaceWholeWord("nos", "");
 
-                    Name = new string(Name.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                    
+                   //  Name = new string(Name.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                    Name = new string(Name.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ").Trim();
@@ -5029,7 +5031,7 @@ new Task(() => ProcessEntityChunk(333000001,343000000))
 
                     Name = Name.ReplaceWholeWord("nos", "");
 
-                    Name = new string(Name.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                    Name = new string(Name.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ").Trim();
@@ -5090,7 +5092,7 @@ new Task(() => ProcessEntityChunk(333000001,343000000))
                     string txt = dataRdr.GetString(0).ToLower();
 
                     //Normalize
-                    txt = new string(txt.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                    txt = new string(txt.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
                     txt = txt.Replace(" and ", " ");
                     txt = txt.Replace("  ", " ");
                     txt = txt.Replace("  ", " ");
@@ -5856,7 +5858,7 @@ top_additional.txt
 
                     Name = Name.ReplaceWholeWord("nos", "");
 
-                    Name = new string(Name.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                    Name = new string(Name.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ").Trim();
@@ -5900,7 +5902,7 @@ top_additional.txt
 
                     Name = Name.ReplaceWholeWord("nos", "");
 
-                    Name = new string(Name.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                    Name = new string(Name.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ").Trim();
@@ -5958,7 +5960,7 @@ top_additional.txt
                     }
                     if (sentenceReady)
                     {
-                        lineCurr = (new string(lineCurr.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray())).Trim();
+                        lineCurr = (new string(lineCurr.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray())).Trim();
                         sentences.Add(lineCurr);
 
                         if (sentences.Count() > 10000)
@@ -6782,7 +6784,7 @@ top_additional.txt
 
                     Name = Name.ReplaceWholeWord("nos", "");
 
-                    Name = new string(Name.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                    Name = new string(Name.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ").Trim();
@@ -6826,7 +6828,7 @@ top_additional.txt
 
                     Name = Name.ReplaceWholeWord("nos", "");
 
-                    Name = new string(Name.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                    Name = new string(Name.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ").Trim();
@@ -6871,7 +6873,7 @@ top_additional.txt
 
                     Name = Name.ReplaceWholeWord("nos", "");
 
-                    Name = new string(Name.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                    Name = new string(Name.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ").Trim();
@@ -6942,7 +6944,7 @@ top_additional.txt
 
                     Name = Name.ReplaceWholeWord("nos", "");
 
-                    Name = new string(Name.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                    Name = new string(Name.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ").Trim();
@@ -7004,7 +7006,7 @@ top_additional.txt
 
                     Name = Name.ReplaceWholeWord("nos", "");
 
-                    Name = new string(Name.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                    Name = new string(Name.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ").Trim();
@@ -7078,7 +7080,7 @@ top_additional.txt
 
                     Name = Name.ReplaceWholeWord("nos", "");
 
-                    Name = new string(Name.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                    Name = new string(Name.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ").Trim();
@@ -7140,7 +7142,7 @@ top_additional.txt
 
                     Name = Name.ReplaceWholeWord("nos", "");
 
-                    Name = new string(Name.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                    Name = new string(Name.Select(ch => (char.IsPunctuation(ch) && ch != '\'') ? ' ' : ch).ToArray());
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ");
                     Name = Name.Replace("  ", " ").Trim();
