@@ -5074,6 +5074,7 @@ new Task(() => ProcessEntityChunk(333000001,343000000))
 
             BackOldFile(@"D:\PubMed\ft_symptoms_recognition.txt");
 
+            res = res.Where(x => x.Length > 21).ToList(); // Remove words shorter than 4 symbols
             System.IO.File.WriteAllLines(@"D:\PubMed\ft_symptoms_recognition.txt", res.ToArray());
 
 
@@ -6807,6 +6808,8 @@ top_additional.txt
                 }
             }
             BackOldFile(@"D:\PubMed\ft_vitamins.txt");
+
+            res = res.Where(x => x.Length > 21).ToList(); // Remove words shorter than 4 symbols
             System.IO.File.WriteAllLines(@"D:\PubMed\ft_vitamins.txt", res.ToArray());
 
 
@@ -6852,6 +6855,8 @@ top_additional.txt
                 }
             }
             BackOldFile(@"D:\PubMed\ft_genes.txt");
+
+            res = res.Where(x => x.Length > 21).ToList(); // Remove words shorter than 4 symbols
             System.IO.File.WriteAllLines(@"D:\PubMed\ft_genes.txt", res.ToArray());
 
 
@@ -6898,6 +6903,7 @@ top_additional.txt
                 }
             }
             BackOldFile(@"D:\PubMed\ft_drugs.txt");
+            res = res.Where(x => x.Length > 21).ToList(); // Remove words shorter than 4 symbols
             System.IO.File.WriteAllLines(@"D:\PubMed\ft_drugs.txt", res.ToArray());
 
         }
@@ -7058,6 +7064,7 @@ top_additional.txt
 
 
             BackOldFile(@"D:\PubMed\ft_symptom_recognition_validation.txt");
+            res = res.Where(x => x.Length > 21).ToList(); // Remove words shorter than 4 symbols
             System.IO.File.WriteAllLines(@"D:\PubMed\ft_symptom_recognition_validation.txt", res.ToArray());
 
             /*--------------------------------------*/
@@ -7066,8 +7073,62 @@ top_additional.txt
             res.Clear();
 
 
+            // add Лист 9
+            string List9 = @"D:\PubMed\_List9.txt"; //
+            var lines = File.ReadAllLines(List9);
+            HashSet<string> l9 = new HashSet<string>();
 
-            sSQL = $"SELECT mc.CUI, mc.STR FROM  mrconso mc, mrsty ms, cuinamepopularity p WHERE mc.CUI=ms.CUI AND mc.CUI=p.CUI AND lat='ENG' AND  (p.CUI in ('{string.Join("','", allCUIs_withClusters.ToArray())}')  or p.CUI in (SELECT  CUI  FROM mrsty WHERE sty in ('Age Group', 'Amino Acid, Peptide, or Protein', 'Antibiotic', 'Biologically Active Substance', 'Chemical', 'Classification', 'Clinical Attribute', 'Clinical Drug', 'Diagnostic Procedure', 'Disease or Syndrome', 'Finding', 'Gene or Genome', 'Hormone', 'Immunologic Factor', 'Laboratory Procedure', 'Laboratory or Test Result', 'Nucleic Acid, Nucleoside, or Nucleotide', 'Nucleotide Sequence', 'Organic Chemical', 'Pharmacologic Substance', 'Sign or Symptom', 'Vitamin', 'Vitamins and Supplements')) )";
+            foreach (string line in lines)
+            {
+                string CUI = line.Substring(0, 8);
+                l9.AddIfNotExist(CUI);
+            }
+
+
+            //add top 1000 dis 
+            string sSQL1000 = $"SELECT distinct p.CUI FROM  mrsty ms, cuinamepopularity p  WHERE  p.CUI=ms.CUI and ms.sty='Disease or Syndrome' order by popularity desc limit 1000";
+            HashSet<string> dis1000 = new HashSet<string>();
+
+            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader(sSQL))
+            {
+                while (dataRdr.Read())
+                {
+                    string CUI = dataRdr.GetString(0);
+                    dis1000.AddIfNotExist(CUI);
+                }
+            }
+            dis1000.Remove("C0012634"); // Disease
+
+            //add top 1000 findings
+             sSQL1000 = $"SELECT distinct p.CUI FROM  mrsty ms, cuinamepopularity p  WHERE  p.CUI=ms.CUI and ms.sty='Finding' order by popularity desc limit 1000";
+            HashSet<string> find1000 = new HashSet<string>();
+
+            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader(sSQL))
+            {
+                while (dataRdr.Read())
+                {
+                    string CUI = dataRdr.GetString(0);
+                    find1000.AddIfNotExist(CUI);
+                }
+            }
+            //add top 1000 symptoms
+            sSQL1000 = $"SELECT distinct p.CUI FROM  mrsty ms, cuinamepopularity p  WHERE  p.CUI=ms.CUI and ms.sty='Sign or Symptom' order by popularity desc limit 1000";
+            HashSet<string> symptoms1000 = new HashSet<string>();
+
+            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader(sSQL))
+            {
+                while (dataRdr.Read())
+                {
+                    string CUI = dataRdr.GetString(0);
+                    symptoms1000.AddIfNotExist(CUI);
+                }
+            }
+
+
+            var allCUIs_withClustersLarge = allCUIs_withClusters.Concat(l9).Concat(dis1000).Concat(symptoms1000).Concat(find1000).Distinct().ToList();
+
+            sSQL = $"SELECT mc.CUI, mc.STR FROM  mrconso mc, mrsty ms, cuinamepopularity p WHERE mc.CUI=ms.CUI AND mc.CUI=p.CUI AND lat='ENG' AND  p.CUI in ('{string.Join("','", allCUIs_withClustersLarge.ToArray())}')  ";
+            //sSQL = $"SELECT mc.CUI, mc.STR FROM  mrconso mc, mrsty ms, cuinamepopularity p WHERE mc.CUI=ms.CUI AND mc.CUI=p.CUI AND lat='ENG' AND  (p.CUI in ('{string.Join("','", allCUIs_withClusters.ToArray())}')  or p.CUI in (SELECT  CUI  FROM mrsty WHERE sty in ('Age Group', 'Amino Acid, Peptide, or Protein', 'Antibiotic', 'Biologically Active Substance', 'Chemical', 'Classification', 'Clinical Attribute', 'Clinical Drug', 'Diagnostic Procedure', 'Disease or Syndrome', 'Finding', 'Gene or Genome', 'Hormone', 'Immunologic Factor', 'Laboratory Procedure', 'Laboratory or Test Result', 'Nucleic Acid, Nucleoside, or Nucleotide', 'Nucleotide Sequence', 'Organic Chemical', 'Pharmacologic Substance', 'Sign or Symptom', 'Vitamin', 'Vitamins and Supplements')) )";
 
             //('Age Group', 'Amino Acid, Peptide, or Protein', 'Antibiotic', 'Biologically Active Substance', 'Chemical', 'Classification', 'Clinical Attribute', 'Clinical Drug', 'Diagnostic Procedure', 'Disease or Syndrome', 'Finding', 'Gene or Genome', 'Hormone', 'Immunologic Factor', 'Laboratory Procedure', 'Laboratory or Test Result', 'Nucleic Acid, Nucleoside, or Nucleotide', 'Nucleotide Sequence', 'Organic Chemical', 'Pharmacologic Substance', 'Sign or Symptom', 'Vitamin', 'Vitamins and Supplements')
             using (MySqlDataReader dataRdr = MyCommandExecutorDataReader(sSQL, mylclcn))
@@ -7195,6 +7256,8 @@ top_additional.txt
             }
 
             BackOldFile(@"D:\PubMed\ft_recognition_large.txt");
+
+            res = res.Where(x => x.Length > 21).ToList(); // Remove words shorter than 4 symbols
             System.IO.File.WriteAllLines(@"D:\PubMed\ft_recognition_large.txt", res.ToArray());
 
 
