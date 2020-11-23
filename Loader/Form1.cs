@@ -8,6 +8,7 @@ using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -17,6 +18,7 @@ using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Linq;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using ZeroRpc.Net;
@@ -7100,7 +7102,7 @@ top_additional.txt
             dis1000.Remove("C0012634"); // Disease
 
             //add top 1000 findings
-             sSQL1000 = $"SELECT distinct p.CUI FROM  mrsty ms, cuinamepopularity p  WHERE  p.CUI=ms.CUI and ms.sty='Finding' order by popularity desc limit 1000";
+            sSQL1000 = $"SELECT distinct p.CUI FROM  mrsty ms, cuinamepopularity p  WHERE  p.CUI=ms.CUI and ms.sty='Finding' order by popularity desc limit 1000";
             HashSet<string> find1000 = new HashSet<string>();
 
             using (MySqlDataReader dataRdr = MyCommandExecutorDataReader(sSQL))
@@ -7262,5 +7264,238 @@ top_additional.txt
 
 
         }
+
+        private void button48_Click(object sender, EventArgs e)
+        {
+            MySqlConnection mylclcn = null;
+            List<string> res = new List<string>();
+            //List<string> resSQL = new List<string>();
+            HashSet<string> uniquePhrases = new HashSet<string>();
+            Regex rgx = new Regex("[^a-zA-Z0-9 -]");
+            var notallowedChars = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+            string lang = textBox4.Text.ToUpper();
+
+            ReadAllTopCSVs();
+
+            var allCUIs_withClusters = allCUIs.Concat(clusters.Keys).Distinct().ToList();
+            string sSQL = $"SELECT mc.CUI, mc.STR FROM  mrconso mc, mrsty ms, cuinamepopularity p WHERE mc.CUI=ms.CUI AND mc.CUI=p.CUI AND lat='{lang}' AND  p.CUI in ('{string.Join("','", allCUIs_withClusters.ToArray())}')";
+
+            HashSet<string> allCUIs_withClustersHS = new HashSet<string>(allCUIs_withClusters);
+            using (var reader = new StreamReader(@"D:\PubMed\2019AB\META\MRCONSO.RRF"))
+            {
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    string[] lbl = line.Split("|");
+
+                    string CUI = lbl[0];
+                    string lng = lbl[1];
+
+
+                    if (allCUIs_withClustersHS.Contains (CUI) && lng== lang)
+                    {
+                        string Name = lbl[13].ToLower();
+
+                        // Clusterise to MainCUI
+                        if (clusters.ContainsKey(CUI)) CUI = clusters[CUI];
+
+                        //Normalize
+                        Name = Name.Replace("[d]", "");
+                        Name = Name.Replace("(disorder)", "");
+                        Name = Name.Replace("(finding)", "");
+                        Name = Name.Replace("(situation)", "");
+                        Name = Name.Replace("(diagnosis)", "");
+                        Name = Name.Replace("(context-dependent category)", "");
+                        Name = Name.Replace("(symptom)", "");
+                        Name = Name.Replace("(physical finding)", "");
+                        Name = Name.Replace("[ambiguous]", "");
+
+                        Name = Name.ReplaceWholeWord("nos", "");
+
+
+                        //  Name = new string(Name.Select(ch => !char.IsPunctuation(ch) ? ch : ' ').ToArray());
+                        Name = Name.Replace("'", "");
+                        Name = new string(Name.Select(ch => (char.IsPunctuation(ch)) ? ' ' : ch).ToArray());
+                        Name = Name.Replace("  ", " ");
+                        Name = Name.Replace("  ", " ");
+                        Name = Name.Replace("  ", " ").Trim();
+
+                        if (lang == "RUS")
+                        {
+                           //string Nametst = rgx.Replace(Name, "").Trim();
+
+                            string Nametst =  new string(Name.Where(c => !notallowedChars.Contains(c)).ToArray());
+
+                            if (Nametst.Length < 4) continue;
+                        }
+
+                        if (!uniquePhrases.Contains(Name))
+                        {
+                            uniquePhrases.Add(Name);
+                            res.Add($"__label__{CUI} {Name}");
+                        }
+                    }
+
+
+                }
+            }
+
+
+
+            BackOldFile($@"D:\PubMed\ft_symptoms_recognition_{lang}.txt");
+
+            res = res.Where(x => x.Length > 21).ToList(); // Remove words shorter than 4 symbols
+            System.IO.File.WriteAllLines($@"D:\PubMed\ft_symptoms_recognition_{lang}.txt", res.ToArray());
+
+
+        }
+
+        private void button49_Click(object sender, EventArgs e)
+        {
+            //"cmtitle": "Categoría:Medicina", es
+            //"cmtitle": "分类:医学",zh
+
+            string[] cat = { "分类:医学" };
+            string lang = "zh";
+            List<string> resList = new List<string>();
+            HashSet<string> uniqueList = new HashSet<string>();
+            int depth = 5;
+
+            GetSubCats(cat, lang, ref resList, depth, ref uniqueList);
+
+            System.IO.File.WriteAllLines($@"R:\PubMed\{lang}_wiki\wikicat_{lang}.txt", resList.ToArray());
+        }
+
+        private static void GetSubCats(string[] cat, string lang, ref List<string> resList, int depth, ref HashSet<string> uniqueList)
+        {
+            depth--;
+            if (depth <= 0) return;
+            List<string> currentSubcat = new List<string>();
+
+            foreach (var catItem in cat)
+            {
+                resList.Add(catItem);   
+
+                using (WebClient wc = new WebClient())
+                {
+                    wc.QueryString.Add("action", "query");
+                    wc.QueryString.Add("cmtitle", catItem);
+                    wc.QueryString.Add("cmtype", "subcat");
+                    wc.QueryString.Add("list", "categorymembers");
+                    wc.QueryString.Add("format", "json");
+                    wc.QueryString.Add("cmlimit", "500");
+
+                    if (uniqueList.Contains(catItem)) continue;
+                    Console.WriteLine(catItem);
+
+                    uniqueList.AddIfNotExist(catItem);
+                    var data = wc.UploadValues($"https://{lang}.wikipedia.org/w/api.php", "POST", wc.QueryString);
+
+                    var responseString = UnicodeEncoding.UTF8.GetString(data);
+
+
+                    JObject m = JObject.Parse(responseString);
+
+                    var ja = m["query"]["categorymembers"];
+
+                    foreach (var item in ja)
+                    {
+                        string result = item["title"].ToString();
+                        currentSubcat.Add(result);
+                        
+                        resList.Add(result);
+                    }
+                    if (currentSubcat.Count > 0)
+                    {
+                        if (!currentSubcat.ElementAt (0).Contains ("por país"))
+                            GetSubCats(currentSubcat.ToArray(), lang, ref resList, depth,ref  uniqueList);
+                    }
+
+                }
+            }
+
+
+        }
+
+        private void button50_Click(object sender, EventArgs e)
+        {
+            string lang = "zh";
+
+            string wikiFile = $@"R:\PubMed\{lang}_wiki\{lang}wiki-20201101-pages-articles-multistream.xml";
+            List<string> store = new List<string>();
+
+            HashSet<string> cats = new HashSet<string>();
+            using (var reader = new StreamReader($@"R:\PubMed\{lang}_wiki\wikicat_{lang}.txt"))
+            {
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    cats.AddIfNotExist(line);
+
+                }
+            }
+            var notallowedChars = "abcdefghijklmnopqrstuvwxyz";
+
+            using (var reader = XmlReader.Create(wikiFile))
+            {
+                reader.ReadToFollowing("page");
+
+                do
+                {
+                    reader.ReadToFollowing("text");
+                    string article = reader.ReadElementContentAsString();
+
+                    using (var sr = new StringReader(article))
+                    {
+                        int count = 0;
+                        string line;
+
+                        while ((line = sr.ReadLine()) != null)
+                        {
+                            count++;
+                            if ((lang =="es" && line.StartsWith("[[Categoría:")) || (lang == "zh" && line.StartsWith("[[Category:")))
+                            //if (line.StartsWith("[[Category:"))
+                            {
+                                string cat = line.Between("[[", "]]").BeforeSafe("|").Trim();
+                                if (cats.Contains(cat))
+                                {
+                                    article = article.Replace("'", "");
+                                    article = article.Replace("<", " ");
+                                    article = article.Replace(">", " ");
+                                    article = article.Replace("|", " ");
+                                    article = article.Replace("=", " ");
+
+                                    article = article.Replace("&lt;", " ");
+                                    article = article.Replace("&gt;", " ");
+                                    article = article.Replace("&amp;", "&");
+                                    article = new string(article.Select(ch => (char.IsPunctuation(ch)) ? ' ' : ch).ToArray());
+                                    article = article.Replace("   ", " ");
+                                    article = article.Replace("  ", " ");
+                                    article = article.Replace("  ", " ");
+                                    article = article.Replace("  ", " ").Trim().ToLower ();
+
+                                    // only for Chineese
+                                    if (lang =="zh") article = new string(article.Where(c => !notallowedChars.Contains(c)).ToArray());
+
+                                    store.Add(article);
+                                    if (store.Count > 500)
+                                    {
+                                        File.AppendAllLines($@"R:\PubMed\{lang}_wiki\{lang}wiki-med-articles.txt", store);
+                                        store.Clear();
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+
+
+                } while (reader.ReadToFollowing("page"));
+            }
+
+        }
     }
+
+
 }
