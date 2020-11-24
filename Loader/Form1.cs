@@ -6588,7 +6588,7 @@ top_additional.txt
                                         string SName2 = GetCell(currentWorksheet, rowNumber, 10).Trim();
                                         string SName3 = GetCell(currentWorksheet, rowNumber, 12).Trim();
 
-                                        if (CUI.Length == 8 && CUI.StartsWith("C"))
+                                        if (CUI.Length == 8 && CUI.StartsWith("C") && Urgency!="")
                                         {
                                             string cmd = $"INSERT INTO diseaseSpec( CUI, Urgency, PrefCUI, ReqCUI, Gender,Recommendation,S1,S2,S3, SName1,SName2,SName3) VALUES ('{CUI.SQLString()}','{Urgency.SQLString()}','{PrefCUI.SQLString()}','{ReqCUI.SQLString()}','{Gender.SQLString()}','{Recommendation.SQLString()}','{S1.SQLString()}','{S2.SQLString()}','{S3.SQLString()}','{SName1.SQLString()}','{SName2.SQLString()}','{SName3.SQLString()}');\r\n";
                                             cmds.Add(cmd);
