@@ -6608,7 +6608,7 @@ top_additional.txt
                                 for (int rowNumber = 1; rowNumber <= currentWorksheet.Dimension.End.Row; rowNumber++)
                                 {
                                     string CUI = GetCell(currentWorksheet, rowNumber, 1).Trim();
-                                    if (CUI.Length == 8 && CUI.StartsWith("C"))
+                                    string Gender = GetCell(currentWorksheet, rowNumber, 5).Trim().ToLower();
                                     {
                                         AllCIUs.AddIfNotExist(CUI);
 
@@ -6617,6 +6617,12 @@ top_additional.txt
                                         {
                                             SimpleName2cui.AddIfNotExist(simpleName, CUI);
                                             UniqueSimpleNames.AddIfNotExist(CUI, simpleName);
+                                        }
+
+                                        if (Gender.InList ("female","male"))
+                                        {
+                                            string cmd = $"INSERT INTO diseaseSpec( CUI, Urgency, PrefCUI, ReqCUI, Gender,Recommendation,S1,S2,S3, SName1,SName2,SName3) VALUES ('{CUI.SQLString()}','','','','{Gender.SQLString()}','','','','','','','');\r\n";
+                                            cmds.Add(cmd);
                                         }
                                     }
                                 }
@@ -6629,6 +6635,8 @@ top_additional.txt
                                 for (int rowNumber = 1; rowNumber <= currentWorksheet.Dimension.End.Row; rowNumber++)
                                 {
                                     string CUI = GetCell(currentWorksheet, rowNumber, 1).Trim();
+                                    string Gender = GetCell(currentWorksheet, rowNumber, 5).Trim().ToLower();
+
                                     if (CUI.Length == 8 && CUI.StartsWith("C"))
                                     {
                                         AllCIUs.AddIfNotExist(CUI);
@@ -6638,6 +6646,11 @@ top_additional.txt
                                         {
                                             SimpleName2cui.AddIfNotExist(simpleName, CUI);
                                             UniqueSimpleNames.AddIfNotExist(CUI, simpleName);
+                                        }
+                                        if (Gender.InList("female", "male"))
+                                        {
+                                            string cmd = $"INSERT INTO diseaseSpec( CUI, Urgency, PrefCUI, ReqCUI, Gender,Recommendation,S1,S2,S3, SName1,SName2,SName3) VALUES ('{CUI.SQLString()}','','','','{Gender.SQLString()}','','','','','','','');\r\n";
+                                            cmds.Add(cmd);
                                         }
                                     }
                                 }
