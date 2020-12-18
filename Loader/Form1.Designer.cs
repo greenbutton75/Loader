@@ -36,6 +36,11 @@
             this.button4 = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.button50 = new System.Windows.Forms.Button();
+            this.button49 = new System.Windows.Forms.Button();
+            this.textBox4 = new System.Windows.Forms.TextBox();
+            this.button48 = new System.Windows.Forms.Button();
             this.button47 = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
             this.button45 = new System.Windows.Forms.Button();
@@ -103,13 +108,10 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.radioButton2 = new System.Windows.Forms.RadioButton();
             this.radioButton1 = new System.Windows.Forms.RadioButton();
-            this.button48 = new System.Windows.Forms.Button();
-            this.textBox4 = new System.Windows.Forms.TextBox();
-            this.panel3 = new System.Windows.Forms.Panel();
-            this.button49 = new System.Windows.Forms.Button();
-            this.button50 = new System.Windows.Forms.Button();
+            this.button51 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
+            this.panel3.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -121,7 +123,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView5)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
-            this.panel3.SuspendLayout();
             this.SuspendLayout();
             // 
             // button1
@@ -243,6 +244,54 @@
             this.tabPage1.Text = "tabPage1";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // panel3
+            // 
+            this.panel3.BackColor = System.Drawing.Color.Gainsboro;
+            this.panel3.Controls.Add(this.button50);
+            this.panel3.Controls.Add(this.button49);
+            this.panel3.Location = new System.Drawing.Point(1181, 293);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(394, 475);
+            this.panel3.TabIndex = 37;
+            // 
+            // button50
+            // 
+            this.button50.Location = new System.Drawing.Point(37, 109);
+            this.button50.Name = "button50";
+            this.button50.Size = new System.Drawing.Size(189, 68);
+            this.button50.TabIndex = 1;
+            this.button50.Text = "GetTextFrom wiki by category";
+            this.button50.UseVisualStyleBackColor = true;
+            this.button50.Click += new System.EventHandler(this.button50_Click);
+            // 
+            // button49
+            // 
+            this.button49.Location = new System.Drawing.Point(37, 36);
+            this.button49.Name = "button49";
+            this.button49.Size = new System.Drawing.Size(180, 67);
+            this.button49.TabIndex = 0;
+            this.button49.Text = "Get wiki categories";
+            this.button49.UseVisualStyleBackColor = true;
+            this.button49.Click += new System.EventHandler(this.button49_Click);
+            // 
+            // textBox4
+            // 
+            this.textBox4.Location = new System.Drawing.Point(252, 1153);
+            this.textBox4.Name = "textBox4";
+            this.textBox4.Size = new System.Drawing.Size(81, 26);
+            this.textBox4.TabIndex = 36;
+            this.textBox4.Text = "RUS";
+            // 
+            // button48
+            // 
+            this.button48.Location = new System.Drawing.Point(339, 1140);
+            this.button48.Name = "button48";
+            this.button48.Size = new System.Drawing.Size(266, 53);
+            this.button48.TabIndex = 35;
+            this.button48.Text = "Make lang Symptoms file";
+            this.button48.UseVisualStyleBackColor = true;
+            this.button48.Click += new System.EventHandler(this.button48_Click);
+            // 
             // button47
             // 
             this.button47.Location = new System.Drawing.Point(267, 1017);
@@ -295,6 +344,7 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.Silver;
+            this.panel1.Controls.Add(this.button51);
             this.panel1.Controls.Add(this.button46);
             this.panel1.Controls.Add(this.button44);
             this.panel1.Controls.Add(this.button42);
@@ -1004,53 +1054,15 @@
             this.radioButton1.UseVisualStyleBackColor = true;
             this.radioButton1.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged);
             // 
-            // button48
+            // button51
             // 
-            this.button48.Location = new System.Drawing.Point(339, 1140);
-            this.button48.Name = "button48";
-            this.button48.Size = new System.Drawing.Size(266, 53);
-            this.button48.TabIndex = 35;
-            this.button48.Text = "Make lang Symptoms file";
-            this.button48.UseVisualStyleBackColor = true;
-            this.button48.Click += new System.EventHandler(this.button48_Click);
-            // 
-            // textBox4
-            // 
-            this.textBox4.Location = new System.Drawing.Point(252, 1153);
-            this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(81, 26);
-            this.textBox4.TabIndex = 36;
-            this.textBox4.Text = "RUS";
-            // 
-            // panel3
-            // 
-            this.panel3.BackColor = System.Drawing.Color.Gainsboro;
-            this.panel3.Controls.Add(this.button50);
-            this.panel3.Controls.Add(this.button49);
-            this.panel3.Location = new System.Drawing.Point(1181, 293);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(394, 475);
-            this.panel3.TabIndex = 37;
-            // 
-            // button49
-            // 
-            this.button49.Location = new System.Drawing.Point(37, 36);
-            this.button49.Name = "button49";
-            this.button49.Size = new System.Drawing.Size(180, 67);
-            this.button49.TabIndex = 0;
-            this.button49.Text = "Get wiki categories";
-            this.button49.UseVisualStyleBackColor = true;
-            this.button49.Click += new System.EventHandler(this.button49_Click);
-            // 
-            // button50
-            // 
-            this.button50.Location = new System.Drawing.Point(37, 109);
-            this.button50.Name = "button50";
-            this.button50.Size = new System.Drawing.Size(189, 68);
-            this.button50.TabIndex = 1;
-            this.button50.Text = "GetTextFrom wiki by category";
-            this.button50.UseVisualStyleBackColor = true;
-            this.button50.Click += new System.EventHandler(this.button50_Click);
+            this.button51.Location = new System.Drawing.Point(86, 20);
+            this.button51.Name = "button51";
+            this.button51.Size = new System.Drawing.Size(173, 33);
+            this.button51.TabIndex = 35;
+            this.button51.Text = "Fill supEntity";
+            this.button51.UseVisualStyleBackColor = true;
+            this.button51.Click += new System.EventHandler(this.button51_Click);
             // 
             // Form1
             // 
@@ -1063,6 +1075,7 @@
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
+            this.panel3.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
@@ -1075,7 +1088,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView5)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
-            this.panel3.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -1162,6 +1174,7 @@
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.Button button49;
         private System.Windows.Forms.Button button50;
+        private System.Windows.Forms.Button button51;
     }
 }
 

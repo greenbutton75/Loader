@@ -63,6 +63,10 @@ namespace Loader
         HashSet<string> dis_CUIs = new HashSet<string>();
         HashSet<string> dis_CUIs_ShortList = new HashSet<string>();
         HashSet<string> additional_CUIs = new HashSet<string>();
+        HashSet<string> allsupCUIs = new HashSet<string>();
+        HashSet<string> sup_CUIs = new HashSet<string>();
+        
+
 
         Dictionary<string, string> w1 = new Dictionary<string, string>();
         Dictionary<string, Dictionary<string, string>> w2 = new Dictionary<string, Dictionary<string, string>>();
@@ -5479,6 +5483,7 @@ top_additional.txt
 
                     dis_CUIs.AddIfNotExist(lbl);
                     allCUIs.AddIfNotExist(lbl);
+                    allsupCUIs.AddIfNotExist(lbl);
                 }
             }
             using (var reader = new StreamReader(@"D:\PubMed\top_finding.txt"))
@@ -5518,6 +5523,20 @@ top_additional.txt
 
                 }
             }
+
+            using (var reader = new StreamReader(@"D:\PubMed\SupplementsCUI.csv"))
+            {
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    string lbl = line.Substring(0, 8);
+                    //string[] lbl = line.Split("\t");
+
+                    sup_CUIs.AddIfNotExist(lbl);
+                    allsupCUIs.AddIfNotExist(lbl);
+                }
+            }
+
             #endregion
 
             Dictionary<string, string> CUINamePopularity = new Dictionary<string, string>();
@@ -7507,6 +7526,161 @@ top_additional.txt
                 } while (reader.ReadToFollowing("page"));
             }
 
+        }
+
+        private void DoOnesupBlock(int page)
+        {
+            int from = page * batchsize;
+            int to = (page + 1) * batchsize;
+
+
+            /*
+             CREATE TABLE supentity (
+  SENTENCE_ID int(10) UNSIGNED NOT NULL,
+  PMID varchar(20) NOT NULL DEFAULT '',
+  CUI varchar(255) DEFAULT NULL,
+  START_INDEX int(10) UNSIGNED DEFAULT 0 COMMENT 'Should be NOT NULL eventually',
+  END_INDEX int(10) UNSIGNED DEFAULT 0 COMMENT 'Should be NOT NULL eventually',
+  ClusterCUI varchar(20) DEFAULT NULL
+)
+ENGINE = INNODB,AVG_ROW_LENGTH = 94,CHARACTER SET latin1,COLLATE latin1_swedish_ci,COMMENT = 'Stores semantic predications in sentences';
+
+ALTER TABLE supentity ADD INDEX CUI_entity (CUI, PMID);
+ALTER TABLE supentity ADD INDEX IDX_entity (ClusterCUI, PMID);
+ALTER TABLE supentity ADD INDEX IDX_entity_SENTENCE_ID (SENTENCE_ID);
+ALTER TABLE supentity ADD INDEX pmid_entity_index_btree (PMID);
+*/
+            Console.WriteLine($"Page {page} From {from} to {to}");
+
+            Dictionary<int, List<Tuple<string, int, int, string, string>>> concepts = new Dictionary<int, List<Tuple<string, int, int, string, string>>>();
+            List<string> content = new List<string>();
+            List<string> onlyCUI = new List<string>();
+
+            MySqlConnection mylclcn = null;
+            try
+            {
+                using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT SENTENCE_ID,       CUI             ,START_INDEX,END_INDEX, PMID FROM entity WHERE sentence_id BETWEEN " + from.ToString() + " AND " + to.ToString() + "  ORDER BY sentence_id;", mylclcn))
+                {
+                    while (dataRdr.Read())
+                    {
+
+                        int SENTENCE_ID = (Int32)dataRdr.GetUInt32(0);
+                        string CUI = dataRdr.GetString(1);
+                        int START_INDEX = (Int32)dataRdr.GetUInt32(2);
+                        int END_INDEX = (Int32)dataRdr.GetUInt32(3);
+                        string PMID = dataRdr.GetString(4);
+
+                        // Use code clustering - not DB clustering
+                        // WITHOUT CLUSTERS comment line below
+                        string cluCUI = CUI;
+                        if (clusters.ContainsKey(CUI)) cluCUI = clusters[CUI]; // Replace with MainCUI
+
+                        if (!allsupCUIs.Contains(CUI) && !allsupCUIs.Contains(cluCUI)) continue;
+
+                        if (!concepts.ContainsKey(SENTENCE_ID)) concepts.Add(SENTENCE_ID, new List<Tuple<string, int, int, string, string>>());
+                        concepts[SENTENCE_ID].Add(new Tuple<string, int, int, string, string>(CUI, START_INDEX, END_INDEX, cluCUI, PMID));
+
+                    }
+                }
+                List<string> insert_list = new List<string>();
+
+
+                // Remove toxicity and 7 commas
+                MySqlConnection mylclcn2 = null;
+                using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT SENTENCE_ID,       SENTENCE   FROM SENTENCE where sentence_id in (" + string.Join(",", concepts.Keys.ToArray()) + ");", mylclcn2))
+                {
+                    while (dataRdr.Read())
+                    {
+
+                        int SENTENCE_ID = (Int32)dataRdr.GetUInt32(0);
+                        string SENTENCE = dataRdr.GetString(1).ToLower();
+
+
+                        //if (SENTENCE.Contains("frequent events") || SENTENCE.Contains("adverse") || SENTENCE.Contains("toxicity") || SENTENCE.Contains("induced") || SENTENCE.Contains("side effects") || countCommas(SENTENCE) >= 7)
+                        if (SENTENCE.Contains("event") || SENTENCE.Contains("adverse") || SENTENCE.Contains("common") || SENTENCE.Contains("toxicity") || SENTENCE.Contains("induced") || SENTENCE.Contains("reaction") || SENTENCE.Contains("effect") || SENTENCE.Contains("side") || countCommas(SENTENCE) >= 7)
+                        {
+                            concepts.Remove(SENTENCE_ID);
+                        }
+                    }
+                }
+
+                foreach (var item in concepts)
+                {
+                    if (item.Value.Count > 1)
+                    {
+                        foreach (var itementity in item.Value)
+                        {
+                            insert_list.Add("(" + item.Key + ",'" + itementity.Item5 + "','" + itementity.Item1 + "'," + itementity.Item2 + "," + itementity.Item3 + ",'" + itementity.Item4 + "')");
+                            MyInsertOverNItems(mylclcn, ref insert_list, " insert into pubmed.supentity(  SENTENCE_ID, PMID,  CUI ,  START_INDEX,  END_INDEX,  ClusterCUI)values", 10000);
+                        }
+                    }
+                }
+                MyInsertOverNItems(mylclcn, ref insert_list, " insert into pubmed.supentity(  SENTENCE_ID, PMID,  CUI ,  START_INDEX,  END_INDEX,  ClusterCUI)values");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Err1 Page {page}");
+            }
+            finally
+            {
+                if (mylclcn != null && mycn.State == ConnectionState.Open) mylclcn.Close();
+            }
+
+
+        }
+
+
+        private void button51_Click(object sender, EventArgs e)
+        {
+            /*
+* 
+* clusters.csv
+* 
+* scr only_CUI_noclu_top.txt
+* result only_CUI_noclu_top.txt
+* 
+* top_disease_or_syndrome.txt
+top_finding.txt
+top_sign_or_symptom.txt
+top_additional.txt
+* */
+            ReadAllTopCSVs();
+
+            batchsize = 100_000;
+            maxSentence_id = 332_724_280;
+
+            //batchsize = 50000;
+            //maxSentence_id = 6010000;
+            int pages = (Int32)Math.Ceiling((double)maxSentence_id / (double)batchsize);
+
+            Task task = Task.Factory.StartNew(delegate
+            {
+                try
+                {
+                    Parallel.For(0, pages + 1, new ParallelOptions { MaxDegreeOfParallelism = 11 }, i =>
+                    {
+                        DoOnesupBlock(i);
+                    });
+
+                }
+                catch (AggregateException ae)
+                {
+                    var ignoredExceptions = new List<Exception>();
+                    // This is where you can choose which exceptions to handle.
+                    foreach (var ex in ae.Flatten().InnerExceptions)
+                    {
+                        if (ex is ArgumentException)
+                            Console.WriteLine(ex.Message);
+                        else
+                            ignoredExceptions.Add(ex);
+                    }
+                    if (ignoredExceptions.Count > 0) throw new AggregateException(ignoredExceptions);
+                }
+
+            });
+
+            task.Wait();
+            MessageBox.Show("Ready!");
         }
     }
 
