@@ -47,6 +47,8 @@
             this.button43 = new System.Windows.Forms.Button();
             this.button39 = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.button52 = new System.Windows.Forms.Button();
+            this.button51 = new System.Windows.Forms.Button();
             this.button46 = new System.Windows.Forms.Button();
             this.button44 = new System.Windows.Forms.Button();
             this.button42 = new System.Windows.Forms.Button();
@@ -108,7 +110,8 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.radioButton2 = new System.Windows.Forms.RadioButton();
             this.radioButton1 = new System.Windows.Forms.RadioButton();
-            this.button51 = new System.Windows.Forms.Button();
+            this.button53 = new System.Windows.Forms.Button();
+            this.button54 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -344,6 +347,9 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.Silver;
+            this.panel1.Controls.Add(this.button54);
+            this.panel1.Controls.Add(this.button53);
+            this.panel1.Controls.Add(this.button52);
             this.panel1.Controls.Add(this.button51);
             this.panel1.Controls.Add(this.button46);
             this.panel1.Controls.Add(this.button44);
@@ -362,6 +368,26 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(1020, 296);
             this.panel1.TabIndex = 30;
+            // 
+            // button52
+            // 
+            this.button52.Location = new System.Drawing.Point(470, 85);
+            this.button52.Name = "button52";
+            this.button52.Size = new System.Drawing.Size(202, 33);
+            this.button52.TabIndex = 36;
+            this.button52.Text = "Create sup FT files";
+            this.button52.UseVisualStyleBackColor = true;
+            this.button52.Click += new System.EventHandler(this.button52_Click);
+            // 
+            // button51
+            // 
+            this.button51.Location = new System.Drawing.Point(3, 20);
+            this.button51.Name = "button51";
+            this.button51.Size = new System.Drawing.Size(173, 33);
+            this.button51.TabIndex = 35;
+            this.button51.Text = "Fill supEntity";
+            this.button51.UseVisualStyleBackColor = true;
+            this.button51.Click += new System.EventHandler(this.button51_Click);
             // 
             // button46
             // 
@@ -485,7 +511,7 @@
             // 
             // button32
             // 
-            this.button32.Location = new System.Drawing.Point(42, 42);
+            this.button32.Location = new System.Drawing.Point(23, 42);
             this.button32.Name = "button32";
             this.button32.Size = new System.Drawing.Size(280, 76);
             this.button32.TabIndex = 0;
@@ -1054,15 +1080,25 @@
             this.radioButton1.UseVisualStyleBackColor = true;
             this.radioButton1.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged);
             // 
-            // button51
+            // button53
             // 
-            this.button51.Location = new System.Drawing.Point(86, 20);
-            this.button51.Name = "button51";
-            this.button51.Size = new System.Drawing.Size(173, 33);
-            this.button51.TabIndex = 35;
-            this.button51.Text = "Fill supEntity";
-            this.button51.UseVisualStyleBackColor = true;
-            this.button51.Click += new System.EventHandler(this.button51_Click);
+            this.button53.Location = new System.Drawing.Point(182, 20);
+            this.button53.Name = "button53";
+            this.button53.Size = new System.Drawing.Size(121, 33);
+            this.button53.TabIndex = 37;
+            this.button53.Text = "Fill gEntity";
+            this.button53.UseVisualStyleBackColor = true;
+            this.button53.Click += new System.EventHandler(this.button53_Click);
+            // 
+            // button54
+            // 
+            this.button54.Location = new System.Drawing.Point(486, 33);
+            this.button54.Name = "button54";
+            this.button54.Size = new System.Drawing.Size(202, 33);
+            this.button54.TabIndex = 38;
+            this.button54.Text = "Create gene FT files";
+            this.button54.UseVisualStyleBackColor = true;
+            this.button54.Click += new System.EventHandler(this.button54_Click);
             // 
             // Form1
             // 
@@ -1175,6 +1211,9 @@
         private System.Windows.Forms.Button button49;
         private System.Windows.Forms.Button button50;
         private System.Windows.Forms.Button button51;
+        private System.Windows.Forms.Button button52;
+        private System.Windows.Forms.Button button53;
+        private System.Windows.Forms.Button button54;
     }
 }
 

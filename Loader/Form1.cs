@@ -61,11 +61,12 @@ namespace Loader
 
         HashSet<string> sym_findings_CUIs = new HashSet<string>();
         HashSet<string> dis_CUIs = new HashSet<string>();
+        HashSet<string> gene_CUIs = new HashSet<string>();
         HashSet<string> dis_CUIs_ShortList = new HashSet<string>();
         HashSet<string> additional_CUIs = new HashSet<string>();
         HashSet<string> allsupCUIs = new HashSet<string>();
         HashSet<string> sup_CUIs = new HashSet<string>();
-        
+
 
 
         Dictionary<string, string> w1 = new Dictionary<string, string>();
@@ -5401,6 +5402,81 @@ top_additional.txt
 
         }
 
+        private void DoOneGeneBlock(int page)
+        {
+            int from = page * batchsize;
+            int to = (page + 1) * batchsize;
+
+            Console.WriteLine($"Page {page} From {from} to {to}");
+
+            Dictionary<int, List<Tuple<string, int, int, string, string>>> concepts = new Dictionary<int, List<Tuple<string, int, int, string, string>>>();
+            List<string> content = new List<string>();
+            List<string> onlyCUI = new List<string>();
+
+            MySqlConnection mylclcn = null;
+            try
+            {
+                using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT SENTENCE_ID,       CUI             ,START_INDEX,END_INDEX, PMID FROM entity WHERE sentence_id BETWEEN " + from.ToString() + " AND " + to.ToString() + "  ORDER BY sentence_id;", mylclcn))
+                {
+                    while (dataRdr.Read())
+                    {
+
+                        int SENTENCE_ID = (Int32)dataRdr.GetUInt32(0);
+                        string CUI = dataRdr.GetString(1);
+                        int START_INDEX = (Int32)dataRdr.GetUInt32(2);
+                        int END_INDEX = (Int32)dataRdr.GetUInt32(3);
+                        string PMID = dataRdr.GetString(4);
+
+                        // Use code clustering - not DB clustering
+                        // WITHOUT CLUSTERS comment line below
+                        string cluCUI = CUI;
+                        if (clusters.ContainsKey(CUI)) cluCUI = clusters[CUI]; // Replace with MainCUI
+
+                        if (!gene_CUIs.Contains(CUI) && !dis_CUIs.Contains(CUI) && !dis_CUIs.Contains(cluCUI)) continue;
+
+                        if (!concepts.ContainsKey(SENTENCE_ID)) concepts.Add(SENTENCE_ID, new List<Tuple<string, int, int, string, string>>());
+                        concepts[SENTENCE_ID].Add(new Tuple<string, int, int, string, string>(CUI, START_INDEX, END_INDEX, cluCUI, PMID));
+
+                    }
+                }
+                List<string> insert_list = new List<string>();
+
+
+                foreach (var item in concepts)
+                {
+                    if (item.Value.Count > 1)
+                    {
+                        // should be at least one gene and one dis
+                        int dis = 0;
+                        int gene = 0;
+                        foreach (var itementity in item.Value)
+                        {
+                            if (dis_CUIs.Contains(itementity.Item1)) dis++;
+                            if (gene_CUIs.Contains(itementity.Item1)) gene++;
+                        }
+                        if (dis * gene == 0) continue;
+
+                        foreach (var itementity in item.Value)
+                        {
+                            insert_list.Add("(" + item.Key + ",'" + itementity.Item5 + "','" + itementity.Item1 + "'," + itementity.Item2 + "," + itementity.Item3 + ",'" + itementity.Item4 + "')");
+                            MyInsertOverNItems(mylclcn, ref insert_list, " insert into pubmed.gentity(  SENTENCE_ID, PMID,  CUI ,  START_INDEX,  END_INDEX,  ClusterCUI)values", 10000);
+                        }
+                    }
+                }
+                MyInsertOverNItems(mylclcn, ref insert_list, " insert into pubmed.gentity(  SENTENCE_ID, PMID,  CUI ,  START_INDEX,  END_INDEX,  ClusterCUI)values");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Err1 Page {page}");
+            }
+            finally
+            {
+                if (mylclcn != null && mycn.State == ConnectionState.Open) mylclcn.Close();
+            }
+
+
+        }
+
         private void button32_Click(object sender, EventArgs e)
         {
             /*
@@ -5537,6 +5613,18 @@ top_additional.txt
                 }
             }
 
+
+            MySqlConnection mylclcn3 = null;
+            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT CUI from cuinamepopularity WHERE sty in ('Gene or Genome') and popularity>0 AND NOT CUI  IN ('C0017337','C0017428','C0002085') ORDER BY popularity desc;;", mylclcn3))
+            {
+                while (dataRdr.Read())
+                {
+                    string CUI = dataRdr.GetString(0);
+                    gene_CUIs.AddIfNotExist(CUI);
+                }
+            }
+
+
             #endregion
 
             Dictionary<string, string> CUINamePopularity = new Dictionary<string, string>();
@@ -5603,16 +5691,10 @@ top_additional.txt
 
         }
 
-        private void WriteOneBatch(Dictionary<int, List<string>> concepts, Dictionary<string, int> f1)
+        private void WriteOneBatch(Dictionary<int, List<string>> concepts, string fileName)
         {
             List<string> txt = new List<string>();
             List<string> ft = new List<string>();
-
-            //List<string> txtwoenum = new List<string>();
-            //List<string> ftwoenum = new List<string>();
-
-            string MMDD = DateTime.Now.ToString("MMdd");
-
 
             // Remove toxicity and 7 commas
             MySqlConnection mylclcn3 = null;
@@ -5660,26 +5742,106 @@ top_additional.txt
                 }
             }
 
-            System.IO.File.AppendAllLines(@"D:\PubMed\abstracts_scluCUI_FT_" + MMDD + ".txt", ft.ToArray());
-            //System.IO.File.AppendAllLines(@"D:\PubMed\abstracts_scluCUI_EM_" + MMDD + ".txt", txt.ToArray());
-
-            //System.IO.File.AppendAllLines(@"D:\PubMed\abstracts_nocluCUI_FT_" + MMDD + "_woenum.txt", ftwoenum.ToArray());
-            //System.IO.File.AppendAllLines(@"D:\PubMed\abstracts_nocluCUI_EM_" + MMDD + "_woenum.txt", txtwoenum.ToArray());
+            System.IO.File.AppendAllLines(fileName, ft.ToArray());
         }
 
+        private void WriteOneSupBatch(Dictionary<int, List<string>> concepts, Dictionary<string, int> f1, string fileName)
+        {
+            List<string> txt = new List<string>();
+            List<string> ft = new List<string>();
+
+
+            // Remove toxicity and 7 commas
+            MySqlConnection mylclcn3 = null;
+            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT SENTENCE_ID,       SENTENCE   FROM SENTENCE where sentence_id in (" + string.Join(",", concepts.Keys.ToArray()) + ");", mylclcn3))
+            {
+                while (dataRdr.Read())
+                {
+
+                    int SENTENCE_ID = (Int32)dataRdr.GetUInt32(0);
+                    string SENTENCE = dataRdr.GetString(1).ToLower();
+
+
+                    //if (SENTENCE.Contains("frequent events") || SENTENCE.Contains("adverse") || SENTENCE.Contains("toxicity") || SENTENCE.Contains("induced") || SENTENCE.Contains("side effects") || countCommas(SENTENCE) >= 7)
+                    if (SENTENCE.Contains("event") || SENTENCE.Contains("adverse") || SENTENCE.Contains("common") || SENTENCE.Contains("toxicity") || SENTENCE.Contains("induced") || SENTENCE.Contains("reaction") || SENTENCE.Contains("effect") || SENTENCE.Contains("side") || countCommas(SENTENCE) >= 7)
+                    {
+                        concepts.Remove(SENTENCE_ID);
+                    }
+                }
+            }
+
+            foreach (var sentence in concepts)
+            {
+                if (sentence.Value.Count < 2) continue;
+
+                txt.Add(string.Join(" ", sentence.Value.ToArray()));
+
+                // FT  - find sup and make __label__ string
+                foreach (var CUI in sentence.Value)
+                {
+                    if (sup_CUIs.Contains(CUI) || (clusters.ContainsKey(CUI) && sup_CUIs.Contains(clusters[CUI])))
+                    {
+                        HashSet<string> CUIs2 = new HashSet<string>(sentence.Value);
+                        CUIs2.Remove(CUI);
+                        if (CUIs2.Count != 0)
+                        {
+                            ///if (f1.ContainsKey (CUI))
+                            ft.Add($"__label__{CUI} {string.Join(" ", CUIs2.ToArray())}");
+
+                            //if (sentence.Value.Count < 4) ftwoenum.Add($"__label__{CUI} {string.Join(" ", CUIs2.ToArray())}");
+                        }
+
+
+                    }
+                }
+            }
+
+            System.IO.File.AppendAllLines(fileName, ft.ToArray());
+        }
+        private void WriteOneGeneBatch(Dictionary<int, List<string>> concepts, Dictionary<string, int> f1, string fileName)
+        {
+            //List<string> txt = new List<string>();
+            List<string> ft = new List<string>();
+
+
+            foreach (var sentence in concepts)
+            {
+                if (sentence.Value.Count < 2) continue;
+
+                //txt.Add(string.Join(" ", sentence.Value.ToArray()));
+
+                // FT  - find gene and make __label__ string
+                foreach (var CUI in sentence.Value)
+                {
+                    if (gene_CUIs.Contains(CUI) || (clusters.ContainsKey(CUI) && gene_CUIs.Contains(clusters[CUI])))
+                    {
+                        HashSet<string> CUIs2 = new HashSet<string>(sentence.Value);
+                        CUIs2.Remove(CUI);
+                        if (CUIs2.Count != 0)
+                        {
+                            ///if (f1.ContainsKey (CUI))
+                            ft.Add($"__label__{CUI} {string.Join(" ", CUIs2.ToArray())}");
+
+                            //if (sentence.Value.Count < 4) ftwoenum.Add($"__label__{CUI} {string.Join(" ", CUIs2.ToArray())}");
+                        }
+
+
+                    }
+                }
+            }
+
+            System.IO.File.AppendAllLines(fileName, ft.ToArray());
+        }
         private void button33_Click(object sender, EventArgs e)
         {
             string MMDD = DateTime.Now.ToString("MMdd");
             int clusterizeDis = 0;
             int clusterizeSym = 1;
 
-            System.IO.File.Delete(@"D:\PubMed\abstracts_scluCUI_FT_" + MMDD + ".txt");
             //System.IO.File.Delete(@"D:\PubMed\abstracts_scluCUI_EM_" + MMDD + ".txt");
 
 
             // string file1 = @"D:\PubMed\abstracts_CUI_ft_dis_top.txt";
-
-            Dictionary<string, int> f1 = new Dictionary<string, int>();
 
             //using (var reader = new StreamReader(file1))
             //{
@@ -5700,20 +5862,51 @@ top_additional.txt
             HashSet<int> ttt = new HashSet<int>();
             int cnt = 0;
 
+            MySqlConnection mylclcn = null;
+
 
             //string sent2removefile = @"D:\PubMed\sents2remove.txt";
             //var logFile = File.ReadAllLines(sent2removefile);
             //var logList = new List<string>(logFile);
             //HashSet<string> sent2remove = new HashSet<string>(logList);
 
-            MySqlConnection mylclcn = null;
-            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT SENTENCE_ID,   CUI   FROM smentity  ORDER BY sentence_id;", mylclcn))
+
+            string fileName = @"D:\PubMed\abstracts_scluCUI_FT_" + MMDD + ".txt";
+
+
+            ///////// FILTER BY TOPIC //////////////
+            ///Only articles where we have children 0- up to Adolescent 12 - 18 and boys or girls in Title.
+            ///
+            /*
+            HashSet<string> topic = new HashSet<string>();
+
+            fileName = @"D:\PubMed\abstracts_children_scluCUI_FT_" + MMDD + ".txt";
+            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT s.PMID from smentity e, sentence s WHERE cui in ('C0021289', 'C0021270', 'C0682053', 'C0008100', 'C0260267', 'C0008059', 'C0205653', 'C0870221', 'C0870604') AND e.SENTENCE_ID = s.SENTENCE_ID AND s.TYPE = 'ti';", mylclcn))
+            {
+                while (dataRdr.Read())
+                {
+                    string PMID = dataRdr.GetString(0);
+                    topic.AddIfNotExist(PMID);
+                }
+            }
+            ///////// FILTER BY TOPIC //////////////
+            */
+            System.IO.File.Delete(fileName);
+
+
+            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT SENTENCE_ID,   CUI , PMID  FROM smentity  ORDER BY sentence_id;", mylclcn))
             {
                 while (dataRdr.Read())
                 {
 
                     int SENTENCE_ID = (Int32)dataRdr.GetUInt32(0);
                     string CUI = dataRdr.GetString(1);
+                    string PMID = dataRdr.GetString(2);
+
+                    ///////// FILTER BY TOPIC //////////////
+                    //if (!topic.Contains(PMID)) continue;
+                    ///////// FILTER BY TOPIC //////////////
+
 
                     // !!!!!!!!!!!!!!! Todo temporary measure !!!!!!!!!!!!!!!
                     ////////if (sent2remove.Contains(SENTENCE_ID.ToString())) continue; // Убрать предложения где искомые toxicities etc.   встречаются в соседнем предложении minus 1.7 mln sentences
@@ -5736,11 +5929,11 @@ top_additional.txt
 
                     if (concepts.Count >= 10000)
                     {
-                        WriteOneBatch(concepts, f1);
+                        WriteOneBatch(concepts, fileName);
                         concepts.Clear();
                     }
                 }
-                WriteOneBatch(concepts, f1);
+                WriteOneBatch(concepts, fileName);
             }
 
             MessageBox.Show("Ready!");
@@ -6607,7 +6800,7 @@ top_additional.txt
                                         string SName2 = GetCell(currentWorksheet, rowNumber, 10).Trim();
                                         string SName3 = GetCell(currentWorksheet, rowNumber, 12).Trim();
 
-                                        if (CUI.Length == 8 && CUI.StartsWith("C") && Urgency!="")
+                                        if (CUI.Length == 8 && CUI.StartsWith("C") && Urgency != "")
                                         {
                                             string cmd = $"INSERT INTO diseaseSpec( CUI, Urgency, PrefCUI, ReqCUI, Gender,Recommendation,S1,S2,S3, SName1,SName2,SName3) VALUES ('{CUI.SQLString()}','{Urgency.SQLString()}','{PrefCUI.SQLString()}','{ReqCUI.SQLString()}','{Gender.SQLString()}','{Recommendation.SQLString()}','{S1.SQLString()}','{S2.SQLString()}','{S3.SQLString()}','{SName1.SQLString()}','{SName2.SQLString()}','{SName3.SQLString()}');\r\n";
                                             cmds.Add(cmd);
@@ -6638,7 +6831,7 @@ top_additional.txt
                                             UniqueSimpleNames.AddIfNotExist(CUI, simpleName);
                                         }
 
-                                        if (Gender.InList ("female","male"))
+                                        if (Gender.InList("female", "male"))
                                         {
                                             string cmd = $"INSERT INTO diseaseSpec( CUI, Urgency, PrefCUI, ReqCUI, Gender,Recommendation,S1,S2,S3, SName1,SName2,SName3) VALUES ('{CUI.SQLString()}','','','','{Gender.SQLString()}','','','','','','','');\r\n";
                                             cmds.Add(cmd);
@@ -7325,7 +7518,7 @@ top_additional.txt
                     string lng = lbl[1];
 
 
-                    if (allCUIs_withClustersHS.Contains (CUI) && lng== lang)
+                    if (allCUIs_withClustersHS.Contains(CUI) && lng == lang)
                     {
                         string Name = lbl[13].ToLower();
 
@@ -7355,9 +7548,9 @@ top_additional.txt
 
                         if (lang == "RUS")
                         {
-                           //string Nametst = rgx.Replace(Name, "").Trim();
+                            //string Nametst = rgx.Replace(Name, "").Trim();
 
-                            string Nametst =  new string(Name.Where(c => !notallowedChars.Contains(c)).ToArray());
+                            string Nametst = new string(Name.Where(c => !notallowedChars.Contains(c)).ToArray());
 
                             if (Nametst.Length < 4) continue;
                         }
@@ -7407,7 +7600,7 @@ top_additional.txt
 
             foreach (var catItem in cat)
             {
-                resList.Add(catItem);   
+                resList.Add(catItem);
 
                 using (WebClient wc = new WebClient())
                 {
@@ -7435,13 +7628,13 @@ top_additional.txt
                     {
                         string result = item["title"].ToString();
                         currentSubcat.Add(result);
-                        
+
                         resList.Add(result);
                     }
                     if (currentSubcat.Count > 0)
                     {
-                        if (!currentSubcat.ElementAt (0).Contains ("por país"))
-                            GetSubCats(currentSubcat.ToArray(), lang, ref resList, depth,ref  uniqueList);
+                        if (!currentSubcat.ElementAt(0).Contains("por país"))
+                            GetSubCats(currentSubcat.ToArray(), lang, ref resList, depth, ref uniqueList);
                     }
 
                 }
@@ -7486,7 +7679,7 @@ top_additional.txt
                         while ((line = sr.ReadLine()) != null)
                         {
                             count++;
-                            if ((lang =="es" && line.StartsWith("[[Categoría:")) || (lang == "zh" && line.StartsWith("[[Category:")))
+                            if ((lang == "es" && line.StartsWith("[[Categoría:")) || (lang == "zh" && line.StartsWith("[[Category:")))
                             //if (line.StartsWith("[[Category:"))
                             {
                                 string cat = line.Between("[[", "]]").BeforeSafe("|").Trim();
@@ -7505,10 +7698,10 @@ top_additional.txt
                                     article = article.Replace("   ", " ");
                                     article = article.Replace("  ", " ");
                                     article = article.Replace("  ", " ");
-                                    article = article.Replace("  ", " ").Trim().ToLower ();
+                                    article = article.Replace("  ", " ").Trim().ToLower();
 
                                     // only for Chineese
-                                    if (lang =="zh") article = new string(article.Where(c => !notallowedChars.Contains(c)).ToArray());
+                                    if (lang == "zh") article = new string(article.Where(c => !notallowedChars.Contains(c)).ToArray());
 
                                     store.Add(article);
                                     if (store.Count > 500)
@@ -7681,6 +7874,165 @@ top_additional.txt
 
             task.Wait();
             MessageBox.Show("Ready!");
+        }
+
+        private void button52_Click(object sender, EventArgs e)
+        {
+            string MMDD = DateTime.Now.ToString("MMdd");
+            int clusterizeDis = 0;
+            //            int clusterizeSym = 1;
+
+            string fileName = @"D:\PubMed\abstracts_supplementsCUI_FT_" + MMDD + ".txt";
+
+            System.IO.File.Delete(fileName);
+
+            Dictionary<string, int> f1 = new Dictionary<string, int>();
+
+            ReadAllTopCSVs();
+            Dictionary<int, List<string>> concepts = new Dictionary<int, List<string>>();
+
+            HashSet<int> ttt = new HashSet<int>();
+            int cnt = 0;
+
+
+
+            MySqlConnection mylclcn = null;
+            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT SENTENCE_ID,   CUI   FROM supentity  ORDER BY sentence_id;", mylclcn))
+            {
+                while (dataRdr.Read())
+                {
+
+                    int SENTENCE_ID = (Int32)dataRdr.GetUInt32(0);
+                    string CUI = dataRdr.GetString(1);
+
+
+                    // Use code clustering - not DB clustering
+                    if (clusterizeDis == 1 && clusters.ContainsKey(CUI) && (dis_CUIs.Contains(clusters[CUI]) || dis_CUIs.Contains(CUI))) CUI = clusters[CUI];// Replace with MainCUI
+                    //if (clusterizeSym == 1 && clusters.ContainsKey(CUI) && (sym_findings_CUIs.Contains(clusters[CUI]) || sym_findings_CUIs.Contains(CUI))) CUI = clusters[CUI];// Replace with MainCUI
+
+
+                    if (!concepts.ContainsKey(SENTENCE_ID)) concepts.Add(SENTENCE_ID, new List<string>());
+                    concepts[SENTENCE_ID].Add(CUI);
+
+
+
+                    if (concepts.Count >= 10000)
+                    {
+                        WriteOneSupBatch(concepts, f1, fileName);
+                        concepts.Clear();
+                    }
+                }
+                WriteOneSupBatch(concepts, f1, fileName);
+            }
+
+            MessageBox.Show("Ready!");
+
+        }
+
+        private void button53_Click(object sender, EventArgs e)
+        {
+            /*
+* 
+* clusters.csv
+* 
+* scr only_CUI_noclu_top.txt
+* result only_CUI_noclu_top.txt
+* 
+* top_disease_or_syndrome.txt
+top_finding.txt
+top_sign_or_symptom.txt
+top_additional.txt
+* */
+            ReadAllTopCSVs();
+
+            batchsize = 100_000;
+            maxSentence_id = 332_724_280;
+
+            //batchsize = 50000;
+            //maxSentence_id = 6010000;
+            int pages = (Int32)Math.Ceiling((double)maxSentence_id / (double)batchsize);
+
+            Task task = Task.Factory.StartNew(delegate
+            {
+                try
+                {
+                    Parallel.For(0, pages + 1, new ParallelOptions { MaxDegreeOfParallelism = 11 }, i =>
+                    {
+                        DoOneGeneBlock(i);
+                    });
+
+                }
+                catch (AggregateException ae)
+                {
+                    var ignoredExceptions = new List<Exception>();
+                    // This is where you can choose which exceptions to handle.
+                    foreach (var ex in ae.Flatten().InnerExceptions)
+                    {
+                        if (ex is ArgumentException)
+                            Console.WriteLine(ex.Message);
+                        else
+                            ignoredExceptions.Add(ex);
+                    }
+                    if (ignoredExceptions.Count > 0) throw new AggregateException(ignoredExceptions);
+                }
+
+            });
+
+            task.Wait();
+            MessageBox.Show("Ready!");
+        }
+
+        private void button54_Click(object sender, EventArgs e)
+        {
+            string MMDD = DateTime.Now.ToString("MMdd");
+            int clusterizeDis = 0;
+            //            int clusterizeSym = 1;
+
+            string fileName = @"D:\PubMed\abstracts_geneCUI_FT_" + MMDD + ".txt";
+
+            System.IO.File.Delete(fileName);
+
+            Dictionary<string, int> f1 = new Dictionary<string, int>();
+
+            ReadAllTopCSVs();
+            Dictionary<int, List<string>> concepts = new Dictionary<int, List<string>>();
+
+            HashSet<int> ttt = new HashSet<int>();
+            int cnt = 0;
+
+
+
+            MySqlConnection mylclcn = null;
+            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT SENTENCE_ID,   CUI   FROM gentity  ORDER BY sentence_id;", mylclcn))
+            {
+                while (dataRdr.Read())
+                {
+
+                    int SENTENCE_ID = (Int32)dataRdr.GetUInt32(0);
+                    string CUI = dataRdr.GetString(1);
+
+
+                    // Use code clustering - not DB clustering
+                    if (clusterizeDis == 1 && clusters.ContainsKey(CUI) && (dis_CUIs.Contains(clusters[CUI]) || dis_CUIs.Contains(CUI))) CUI = clusters[CUI];// Replace with MainCUI
+                    //if (clusterizeSym == 1 && clusters.ContainsKey(CUI) && (sym_findings_CUIs.Contains(clusters[CUI]) || sym_findings_CUIs.Contains(CUI))) CUI = clusters[CUI];// Replace with MainCUI
+
+
+                    if (!concepts.ContainsKey(SENTENCE_ID)) concepts.Add(SENTENCE_ID, new List<string>());
+                    concepts[SENTENCE_ID].Add(CUI);
+
+
+
+                    if (concepts.Count >= 10000)
+                    {
+                        WriteOneGeneBatch(concepts, f1, fileName);
+                        concepts.Clear();
+                    }
+                }
+                WriteOneGeneBatch(concepts, f1, fileName);
+            }
+
+            MessageBox.Show("Ready!");
+
         }
     }
 
