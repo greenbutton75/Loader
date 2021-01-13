@@ -8039,6 +8039,113 @@ top_additional.txt
             MessageBox.Show("Ready!");
 
         }
+
+        private void button55_Click(object sender, EventArgs e)
+        {
+            string folderPath = @"D:\Work\NewPS\Address\IPAddress";
+            Dictionary<string, int> counter = new   Dictionary<string, int>();
+            Dictionary<string, int> counterPS = new Dictionary<string, int>();
+            Dictionary<string, int> counterLEXE = new Dictionary<string, int>();
+
+            foreach (string file in Directory.EnumerateFiles(folderPath, "*.log"))
+            {
+                string[] contents = File.ReadAllLines(file);
+                string line = "";
+
+                foreach (var item in contents)
+                {
+                    if (item.Contains("80 - ")) line = item.After("80 - ").BeforeSafe(" ");
+                    else if (item.Contains("443 - ")) line = item.After("443 - ").BeforeSafe(" ");
+                    else continue;
+
+                    if (counter.ContainsKey(line))
+                        counter[line]++;
+                    else
+                        counter.Add(line, 1);
+
+                    if (item.Contains("AJAXPS"))
+                    {
+                        if (counterLEXE.ContainsKey(line))
+                            counterLEXE[line]++;
+                        else
+                            counterLEXE.Add(line, 1);
+                    }
+                    if (item.Contains("planisphere"))
+                    {
+                        if (counterPS.ContainsKey(line))
+                            counterPS[line]++;
+                        else
+                            counterPS.Add(line, 1);
+                    }
+                    
+                }
+            }
+
+            var sorted = counter.OrderByDescending(x => x.Value);
+            var t = sorted.Select(x => x.Key + "|" + x.Value).ToArray();
+            File.WriteAllText(@"D:\Work\NewPS\Address\IPAddress\counter.txt", string.Join("\r\n", t));
+
+            sorted = counterPS.OrderByDescending(x => x.Value);
+            t = sorted.Select(x => x.Key + "|" + x.Value).ToArray();
+            File.WriteAllText(@"D:\Work\NewPS\Address\IPAddress\counterPS.txt", string.Join("\r\n", t));
+
+            sorted = counterLEXE.OrderByDescending(x => x.Value);
+            t = sorted.Select(x => x.Key + "|" + x.Value).ToArray();
+            File.WriteAllText(@"D:\Work\NewPS\Address\IPAddress\counterLEXE.txt", string.Join("\r\n", t));
+
+        }
+        private string GetResponseText(string url)
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+
+            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+            using (Stream stream = response.GetResponseStream())
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                return reader.ReadToEnd();
+            }
+        }
+
+        private void button56_Click(object sender, EventArgs e)
+        {
+            string url = @"http://api.ipstack.com/%IP%?access_key=655c46d48a1bc3cda81823e51d5dadea&fields=zip,country_code,region_name,city,latitude,longitude";
+            List<string> result = new List<string>();
+
+            string[] contents = File.ReadAllLines(@"D:\Work\NewPS\Address\IPAddress\counterPS.txt");
+            foreach (var item in contents)
+            {
+                string[] items = item.Split("|");
+                int cnt = items[1].ToInt32();
+                if (cnt >= 100)
+                {
+                    string newurl = url.Replace("%IP%", items[0]);
+
+                    try
+                    {
+                        string json = GetResponseText(newurl);
+                        JObject j_data = JObject.Parse(json);
+
+                        /*
+ {
+    "zip": "73089",
+    "country_code": "US",
+    "region_name": "Oklahoma",
+    "city": "Mustang",
+    "latitude": 35.27531814575195,
+    "longitude": -97.77696228027344
+}*/
+
+                        result.Add($"{items[0]}\t{cnt}\t{j_data["zip"].ToString()}\t{j_data["country_code"].ToString()}\t{j_data["region_name"].ToString()}\t{j_data["city"].ToString()}\t{j_data["latitude"].ToString()}\t{j_data["longitude"].ToString()}");
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                }
+            }
+
+            File.WriteAllText(@"D:\Work\NewPS\Address\IPAddress\counterPSAddress.txt", string.Join("\r\n", result));
+        }
     }
 
 
