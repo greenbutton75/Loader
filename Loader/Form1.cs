@@ -621,7 +621,7 @@ Inflammatory bowel disease, type 1 diabetes, and VTE might predispose to RA deve
             // If we want to calculate only SPECIFIC sty
             MySqlConnection mylclcn = null;
             // removed ,
-            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT CUI FROM cuinamepopularity  where sty IN       ('Finding','Diagnostic PROCEDURE','Therapeutic or Preventive PROCEDURE','Vitamins and Supplements','Disease or Syndrome','Sign or Symptom') ; ", mylclcn))
+            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT CUI FROM cuinamepopularity  where sty IN     ('Gene or Genome','Finding','Diagnostic PROCEDURE','Therapeutic or Preventive PROCEDURE','Vitamins and Supplements','Disease or Syndrome','Sign or Symptom') and popularity>0; ", mylclcn))
             {
                 while (dataRdr.Read())
                 {
@@ -656,6 +656,10 @@ Inflammatory bowel disease, type 1 diabetes, and VTE might predispose to RA deve
             allowedCUIs.Remove("C1457887"); // Symptoms
             allowedCUIs.Remove("C0205160"); // Negative
             allowedCUIs.Remove("C0221444"); // clinical syndromes
+
+            allowedCUIs.Remove("C0017337"); // General gene concepts
+            allowedCUIs.Remove("C0017428");
+            allowedCUIs.Remove("C0002085");
 
             // Add age and sex
             allowedCUIs.Add("C0021289");// Neonate 0 - 1 month
@@ -855,6 +859,7 @@ Inflammatory bowel disease, type 1 diabetes, and VTE might predispose to RA deve
                 try
                 {
                     //System.IO.File.AppendAllLines(@"D:\PubMed\abstracts_CUI_clu.txt", content.ToArray());
+
                     System.IO.File.AppendAllLines(@"D:\PubMed\only_CUI_clu.txt", onlyCUI.ToArray());
 
                     //long length = new System.IO.FileInfo(@"D:\PubMed\abstracts_CUI_noclu.txt").Length;
