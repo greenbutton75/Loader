@@ -6738,6 +6738,9 @@ top_additional.txt
                                             {
                                                 SimpleName2cui.AddIfNotExist(fn.ToLower(), CUI);
                                                 UniqueSimpleNames.AddIfNotExist(CUI, fn.ToLower());
+
+                                                // colNumber == 3 has priority over other fields 
+                                                UniqueSimpleNames[CUI] = fn.ToLower();
                                             }
                                         }
                                         if (colNumber == 6)
