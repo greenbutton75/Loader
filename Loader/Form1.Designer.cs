@@ -47,6 +47,8 @@
             this.button43 = new System.Windows.Forms.Button();
             this.button39 = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.button54 = new System.Windows.Forms.Button();
+            this.button53 = new System.Windows.Forms.Button();
             this.button52 = new System.Windows.Forms.Button();
             this.button51 = new System.Windows.Forms.Button();
             this.button46 = new System.Windows.Forms.Button();
@@ -110,11 +112,12 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.radioButton2 = new System.Windows.Forms.RadioButton();
             this.radioButton1 = new System.Windows.Forms.RadioButton();
-            this.button53 = new System.Windows.Forms.Button();
-            this.button54 = new System.Windows.Forms.Button();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.button55 = new System.Windows.Forms.Button();
             this.button56 = new System.Windows.Forms.Button();
+            this.button55 = new System.Windows.Forms.Button();
+            this.button57 = new System.Windows.Forms.Button();
+            this.textBox5 = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -373,6 +376,26 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(1020, 296);
             this.panel1.TabIndex = 30;
+            // 
+            // button54
+            // 
+            this.button54.Location = new System.Drawing.Point(486, 33);
+            this.button54.Name = "button54";
+            this.button54.Size = new System.Drawing.Size(202, 33);
+            this.button54.TabIndex = 38;
+            this.button54.Text = "Create gene FT files";
+            this.button54.UseVisualStyleBackColor = true;
+            this.button54.Click += new System.EventHandler(this.button54_Click);
+            // 
+            // button53
+            // 
+            this.button53.Location = new System.Drawing.Point(182, 20);
+            this.button53.Name = "button53";
+            this.button53.Size = new System.Drawing.Size(121, 33);
+            this.button53.TabIndex = 37;
+            this.button53.Text = "Fill gEntity";
+            this.button53.UseVisualStyleBackColor = true;
+            this.button53.Click += new System.EventHandler(this.button53_Click);
             // 
             // button52
             // 
@@ -1085,28 +1108,11 @@
             this.radioButton1.UseVisualStyleBackColor = true;
             this.radioButton1.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged);
             // 
-            // button53
-            // 
-            this.button53.Location = new System.Drawing.Point(182, 20);
-            this.button53.Name = "button53";
-            this.button53.Size = new System.Drawing.Size(121, 33);
-            this.button53.TabIndex = 37;
-            this.button53.Text = "Fill gEntity";
-            this.button53.UseVisualStyleBackColor = true;
-            this.button53.Click += new System.EventHandler(this.button53_Click);
-            // 
-            // button54
-            // 
-            this.button54.Location = new System.Drawing.Point(486, 33);
-            this.button54.Name = "button54";
-            this.button54.Size = new System.Drawing.Size(202, 33);
-            this.button54.TabIndex = 38;
-            this.button54.Text = "Create gene FT files";
-            this.button54.UseVisualStyleBackColor = true;
-            this.button54.Click += new System.EventHandler(this.button54_Click);
-            // 
             // tabPage3
             // 
+            this.tabPage3.Controls.Add(this.label10);
+            this.tabPage3.Controls.Add(this.textBox5);
+            this.tabPage3.Controls.Add(this.button57);
             this.tabPage3.Controls.Add(this.button56);
             this.tabPage3.Controls.Add(this.button55);
             this.tabPage3.Location = new System.Drawing.Point(4, 29);
@@ -1116,6 +1122,16 @@
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "AUX";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // button56
+            // 
+            this.button56.Location = new System.Drawing.Point(608, 96);
+            this.button56.Name = "button56";
+            this.button56.Size = new System.Drawing.Size(303, 68);
+            this.button56.TabIndex = 1;
+            this.button56.Text = "Get Location by IP address";
+            this.button56.UseVisualStyleBackColor = true;
+            this.button56.Click += new System.EventHandler(this.button56_Click);
             // 
             // button55
             // 
@@ -1127,15 +1143,33 @@
             this.button55.UseVisualStyleBackColor = true;
             this.button55.Click += new System.EventHandler(this.button55_Click);
             // 
-            // button56
+            // button57
             // 
-            this.button56.Location = new System.Drawing.Point(608, 96);
-            this.button56.Name = "button56";
-            this.button56.Size = new System.Drawing.Size(303, 68);
-            this.button56.TabIndex = 1;
-            this.button56.Text = "Get Location by IP address";
-            this.button56.UseVisualStyleBackColor = true;
-            this.button56.Click += new System.EventHandler(this.button56_Click);
+            this.button57.Location = new System.Drawing.Point(1007, 350);
+            this.button57.Name = "button57";
+            this.button57.Size = new System.Drawing.Size(392, 185);
+            this.button57.TabIndex = 2;
+            this.button57.Text = "Parse MSG for pocketnet";
+            this.button57.UseVisualStyleBackColor = true;
+            this.button57.Click += new System.EventHandler(this.button57_Click);
+            // 
+            // textBox5
+            // 
+            this.textBox5.Location = new System.Drawing.Point(936, 291);
+            this.textBox5.Name = "textBox5";
+            this.textBox5.Size = new System.Drawing.Size(535, 26);
+            this.textBox5.TabIndex = 3;
+            this.textBox5.Text = "C:\\Users\\Valentin Kolesov\\Downloads\\sqlHist\\Message undeliverable  Pocketnet Upda" +
+    "te Registration.txt";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(936, 265);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(34, 20);
+            this.label10.TabIndex = 4;
+            this.label10.Text = "File";
             // 
             // Form1
             // 
@@ -1162,6 +1196,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.tabPage3.ResumeLayout(false);
+            this.tabPage3.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -1255,6 +1290,9 @@
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.Button button55;
         private System.Windows.Forms.Button button56;
+        private System.Windows.Forms.Button button57;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.TextBox textBox5;
     }
 }
 

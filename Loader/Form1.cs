@@ -8149,6 +8149,52 @@ top_additional.txt
 
             File.WriteAllText(@"D:\Work\NewPS\Address\IPAddress\counterPSAddress.txt", string.Join("\r\n", result));
         }
+
+        private void button57_Click(object sender, EventArgs e)
+        {
+            ////////////////////////////////  
+            ////////////////////////////////  select Email from table_1 t1 where not exists(select * from table_2 t2 where t2.Email = t1.Email)
+            ////////////////////////////////  
+
+            string file = textBox5.Text;
+            string reason = "";
+            string email = "";
+            int cnt = 0;
+            List<string> res = new List<string>();
+
+
+            foreach (var line in File.ReadAllLines(file))
+            {
+                if (line == "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
+                {
+                    if (reason != "" || email != "")
+                    {
+                        if (!reason.Contains ( "temporarily deferred due to unexpected volume or user complaints"))
+                        res.Add($"{email}\t{reason}");
+
+                        reason = "";
+                        email = "";
+                        cnt = 0;
+                    }
+                }
+                if (line == "The following recipient(s) could not be reached:")
+                {
+                    cnt = 1;
+                }
+                if (line == "" & cnt == 1) cnt = 2;
+                if (line != "" & cnt == 2)
+                {
+                    email = line;
+                    cnt = 0;
+                }
+                if (line.Contains ( "Remote server replied") || line.Contains ("Error Description") || line.Contains("Error:"))
+                {
+                    reason =line.After (":").Trim();
+                }
+
+            }
+            File.WriteAllText(@"C:\Users\Valentin Kolesov\Downloads\sqlHist\Emails.txt", string.Join("\r\n", res));
+        }
     }
 
 
