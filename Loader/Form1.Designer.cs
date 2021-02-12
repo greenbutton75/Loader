@@ -113,11 +113,12 @@
             this.radioButton2 = new System.Windows.Forms.RadioButton();
             this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.label10 = new System.Windows.Forms.Label();
+            this.textBox5 = new System.Windows.Forms.TextBox();
+            this.button57 = new System.Windows.Forms.Button();
             this.button56 = new System.Windows.Forms.Button();
             this.button55 = new System.Windows.Forms.Button();
-            this.button57 = new System.Windows.Forms.Button();
-            this.textBox5 = new System.Windows.Forms.TextBox();
-            this.label10 = new System.Windows.Forms.Label();
+            this.button58 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -210,6 +211,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.button58);
             this.tabPage1.Controls.Add(this.panel3);
             this.tabPage1.Controls.Add(this.textBox4);
             this.tabPage1.Controls.Add(this.button48);
@@ -1123,6 +1125,34 @@
             this.tabPage3.Text = "AUX";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(936, 265);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(34, 20);
+            this.label10.TabIndex = 4;
+            this.label10.Text = "File";
+            // 
+            // textBox5
+            // 
+            this.textBox5.Location = new System.Drawing.Point(936, 291);
+            this.textBox5.Name = "textBox5";
+            this.textBox5.Size = new System.Drawing.Size(535, 26);
+            this.textBox5.TabIndex = 3;
+            this.textBox5.Text = "C:\\Users\\Valentin Kolesov\\Downloads\\sqlHist\\Message undeliverable  Pocketnet Upda" +
+    "te Registration.txt";
+            // 
+            // button57
+            // 
+            this.button57.Location = new System.Drawing.Point(1007, 350);
+            this.button57.Name = "button57";
+            this.button57.Size = new System.Drawing.Size(392, 185);
+            this.button57.TabIndex = 2;
+            this.button57.Text = "Parse MSG for pocketnet";
+            this.button57.UseVisualStyleBackColor = true;
+            this.button57.Click += new System.EventHandler(this.button57_Click);
+            // 
             // button56
             // 
             this.button56.Location = new System.Drawing.Point(608, 96);
@@ -1143,33 +1173,15 @@
             this.button55.UseVisualStyleBackColor = true;
             this.button55.Click += new System.EventHandler(this.button55_Click);
             // 
-            // button57
+            // button58
             // 
-            this.button57.Location = new System.Drawing.Point(1007, 350);
-            this.button57.Name = "button57";
-            this.button57.Size = new System.Drawing.Size(392, 185);
-            this.button57.TabIndex = 2;
-            this.button57.Text = "Parse MSG for pocketnet";
-            this.button57.UseVisualStyleBackColor = true;
-            this.button57.Click += new System.EventHandler(this.button57_Click);
-            // 
-            // textBox5
-            // 
-            this.textBox5.Location = new System.Drawing.Point(936, 291);
-            this.textBox5.Name = "textBox5";
-            this.textBox5.Size = new System.Drawing.Size(535, 26);
-            this.textBox5.TabIndex = 3;
-            this.textBox5.Text = "C:\\Users\\Valentin Kolesov\\Downloads\\sqlHist\\Message undeliverable  Pocketnet Upda" +
-    "te Registration.txt";
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(936, 265);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(34, 20);
-            this.label10.TabIndex = 4;
-            this.label10.Text = "File";
+            this.button58.Location = new System.Drawing.Point(611, 351);
+            this.button58.Name = "button58";
+            this.button58.Size = new System.Drawing.Size(161, 52);
+            this.button58.TabIndex = 38;
+            this.button58.Text = "For Gene Clusters";
+            this.button58.UseVisualStyleBackColor = true;
+            this.button58.Click += new System.EventHandler(this.button58_Click);
             // 
             // Form1
             // 
@@ -1293,6 +1305,7 @@
         private System.Windows.Forms.Button button57;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox textBox5;
+        private System.Windows.Forms.Button button58;
     }
 }
 

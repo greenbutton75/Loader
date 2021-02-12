@@ -880,6 +880,66 @@ Inflammatory bowel disease, type 1 diabetes, and VTE might predispose to RA deve
 
         }
 
+        private void DoOneBlockForGeneClustering(int page)
+        {
+            int from = page * batchsize;
+            int to = (page + 1) * batchsize;
+
+            Console.WriteLine($"Page {page} From {from} to {to}");
+
+            Dictionary<int, List<string>> concepts = new Dictionary<int, List<string>>();
+            //List<string> skipped = new List<string>();
+            //List<string> skippedCUI = new List<string>();
+            //using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT SENTENCE_ID,CUI,START_INDEX,END_INDEX FROM entity WHERE sentence_id BETWEEN " + from.ToString() + " AND " + to.ToString() + "  ORDER BY sentence_id, START_INDEX desc ;"))
+
+            MySqlConnection mylclcn = null;
+            try
+            {
+                using (MySqlDataReader dataRdr = MyCommandExecutorDataReader("SELECT SENTENCE_ID,     CUI     FROM entity WHERE sentence_id BETWEEN " + from.ToString() + " AND " + to.ToString() + "  ORDER BY sentence_id;", mylclcn))
+                {
+                    while (dataRdr.Read())
+                    {
+                        int SENTENCE_ID = (Int32)dataRdr.GetUInt32(0);
+                        string CUI = dataRdr.GetString(1);
+
+                        if (!allowedCUIs.Contains(CUI)) continue; // If we want to calculate only SPECIFIC sty
+
+                        if (!concepts.ContainsKey(SENTENCE_ID)) concepts.Add(SENTENCE_ID, new List<string>());
+                        concepts[SENTENCE_ID].Add(CUI);
+
+                        //if (CUI == "C1384666")
+                        //{
+                        //    string b = "bingo";
+                        //}
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Err1 Page {page}");
+            }
+            finally
+            {
+                if (mylclcn != null && mycn.State == ConnectionState.Open) mylclcn.Close();
+            }
+
+ 
+            lock (locker)
+            {
+                Console.WriteLine($"writes Page {page}  {concepts.Count }");
+                try
+                {
+                    var t = concepts.Where(x => x.Value.Count>1).Select(x => string.Join(" ", x.Value)).ToList();
+                    File.AppendAllText(@"D:\PubMed\only_CUI_GeneClustering.txt", string.Join("\r\n", t));
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine($"Err3 Page {page}");
+                }
+            }
+
+        }
+
         private void button4_Click(object sender, EventArgs e)
         {
 
@@ -8194,6 +8254,108 @@ top_additional.txt
 
             }
             File.WriteAllText(@"C:\Users\Valentin Kolesov\Downloads\sqlHist\Emails.txt", string.Join("\r\n", res));
+        }
+
+        private void button58_Click(object sender, EventArgs e)
+        {
+
+            batchsize = 100_000;
+            maxSentence_id = 332_724_280;
+
+            //batchsize = 500;
+            //maxSentence_id = 60100;
+            int pages = (Int32)Math.Ceiling((double)maxSentence_id / (double)batchsize);
+
+
+
+            // If we want to calculate only SPECIFIC sty
+            MySqlConnection mylclcn = null;
+            // removed ,
+            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader(@"SELECT CUI FROM cuinamepopularity  where sty IN     ( 'Pharmacologic Substance',
+'Amino Acid, Peptide, or Protein',
+'Organic Chemical', 'Biologically Active Substance', 'Body Part, Organ, or Organ Component', 'Disease or Syndrome', 'Therapeutic or Preventive Procedure', 'Finding', 'Cell', 'Mammal',
+'Enzyme', 'Laboratory Procedure', 'Pathologic Function', 'Immunologic Factor', 'Neoplastic Process', 'Hormone', 'Body Substance', 'Organism Function', 'Cell Component', 'Organism Attribute', 'Population Group', 'Nucleic Acid, Nucleoside, or Nucleotide',
+'Natural Phenomenon or Process', 'Tissue', 'Element, Ion, or Isotope', 'Mental Process', 'Age Group', 'Gene or Genome', 'Sign or Symptom', 'Social Behavior', 'Health Care Related Organization', 'Molecular Function', 'Hazardous or Poisonous Substance', 'Substance',
+'Health Care Activity', 'Organ or Tissue Function', 'Phenomenon or Process', 'Professional or Occupational Group', 'Indicator, Reagent, or Diagnostic Aid', 'Inorganic Chemical', 'Cell Function', 'Activity', 'Bacterium', 'Receptor',
+'Physiologic Function', 'Body Location or Region', 'Geographic Area', 'Mental or Behavioral Dysfunction', 'Antibiotic', 'Eukaryote', 'Virus', 'Biomedical Occupation or Discipline', 'Occupational Activity', 'Chemical Viewed Structurally',
+'Genetic Function', 'Family Group', 'Vitamins and Supplements', 'Diagnostic PROCEDURE') and popularity> 0; ", mylclcn))
+            {
+                while (dataRdr.Read())
+                {
+                    string CUI = dataRdr.GetString(0);
+
+                    allowedCUIs.AddIfNotExist(CUI);
+                }
+            }
+
+
+            // Remove general concepts.
+            allowedCUIs.Remove("C0039082"); // Syndrome
+            allowedCUIs.Remove("C0012634"); // Disease
+            allowedCUIs.Remove("C0221198"); // Lesion
+            allowedCUIs.Remove("C0205082"); // Severe
+            allowedCUIs.Remove("C1457887"); // Symptoms
+            allowedCUIs.Remove("C0205160"); // Negative
+            allowedCUIs.Remove("C0221444"); // clinical syndromes
+
+            allowedCUIs.Remove("C0087111"); // therapeutics
+            allowedCUIs.Remove("C0007634"); // cells
+            allowedCUIs.Remove("C0871261"); // response
+            allowedCUIs.Remove("C0008059"); // child
+            allowedCUIs.Remove("C1552516"); // Specialty Group
+            allowedCUIs.Remove("C0543467"); // operative surgery
+            allowedCUIs.Remove("C0002520"); // amino acids
+            allowedCUIs.Remove("C0597357"); // receptors
+            allowedCUIs.Remove("C0012634"); // DISEASE
+            allowedCUIs.Remove("C0013227"); // DRUG
+            allowedCUIs.Remove("C0035820"); // social role
+            allowedCUIs.Remove("C0001779"); // age
+            allowedCUIs.Remove("C0150312"); // PRESENT
+            allowedCUIs.Remove("C0332149"); // POSSIBLE
+            allowedCUIs.Remove("C0243095"); // Finding
+            allowedCUIs.Remove("C1522240"); // Process
+            allowedCUIs.Remove("C0221198"); // lesion
+            allowedCUIs.Remove("C1446409"); // POSITIVE
+            allowedCUIs.Remove("C0043210"); // woman
+            allowedCUIs.Remove("C0043047"); // water
+            allowedCUIs.Remove("C1257890"); // population group
+            allowedCUIs.Remove("C0184661"); // PROCEDURE
+            allowedCUIs.Remove("C0237401"); // individual
+            allowedCUIs.Remove("C0205082"); // SEVERE
+            allowedCUIs.Remove("C0033268"); // production
+            allowedCUIs.Remove("C1457887"); // symptom
+
+
+            allowedCUIs.Remove("C0017337"); // General gene concepts
+            allowedCUIs.Remove("C0017428");
+            allowedCUIs.Remove("C0002085");
+
+            try
+            {
+                Parallel.For(0, pages + 1, new ParallelOptions { MaxDegreeOfParallelism = 11 }, i =>
+                {
+                    DoOneBlockForGeneClustering(i);
+                });
+
+            }
+            catch (AggregateException ae)
+            {
+                var ignoredExceptions = new List<Exception>();
+                // This is where you can choose which exceptions to handle.
+                foreach (var ex in ae.Flatten().InnerExceptions)
+                {
+                    if (ex is ArgumentException)
+                        Console.WriteLine(ex.Message);
+                    else
+                        ignoredExceptions.Add(ex);
+                }
+                if (ignoredExceptions.Count > 0) throw new AggregateException(ignoredExceptions);
+            }
+
+
+            MessageBox.Show("Ready!");
+
+
         }
     }
 
