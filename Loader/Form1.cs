@@ -8357,6 +8357,115 @@ top_additional.txt
 
 
         }
+
+        private void button59_Click(object sender, EventArgs e)
+        {
+            //string file = @"C:\Users\Valentin Kolesov\Downloads\transactions.json";
+            string file = @"C:\Users\Valentin Kolesov\Downloads\tr.json";
+
+
+            var jRes = JArray.Parse(file);
+            foreach (var item in jRes)
+            {
+                string nBlock = item["nBlock"].ToString();
+
+                JArray txs = (JArray)item["transactions"];
+                
+                foreach (var itemT in txs)
+                {
+                    string txhex= itemT["txhex"].ToString();
+                    string coinbase = itemT["coinbase"].ToString();
+
+                    string l = $"{nBlock},{txhex},{coinbase}";
+                }
+
+            }
+
+
+     
+
+        }
+
+        private void button60_Click(object sender, EventArgs e)
+        {
+
+            string file = @"D:\PubMed\genes_nn.json";
+            string contents = File.ReadAllText (file);
+
+            var jRes = JObject.Parse(contents);
+            IList<string> keys = jRes.Properties().Select(p => p.Name).ToList();
+
+            int i = keys.Count;
+            List<string> resTxt = new List<string>();
+
+            foreach (var item in keys)
+            {
+                JArray ja = jRes[item] as JArray;
+                foreach (JArray jitem in ja)
+                {
+                    string c = jitem[0].ToString ();
+                    string p = jitem[1].ToString();
+                    if (c.StartsWith("C")) resTxt.Add($"{item};{c};{p}");
+                }
+
+            }
+            File.WriteAllText(@"D:\PubMed\genes_nn.csv", string.Join("\r\n", resTxt));
+
+
+        }
+
+        private void button61_Click(object sender, EventArgs e)
+        {
+           string[] contents = File.ReadAllLines(@"D:\PubMed\genes_nn.csv");
+            Dictionary<string, string[]> cuis = new Dictionary<string, string[]>();
+
+
+            foreach (var item in contents)
+            {
+                string[] parray = item.Split(";");
+
+                if (!cuis.ContainsKey(parray[0]) )   cuis.Add (parray[0], new string[2]); 
+                if (!cuis.ContainsKey(parray[1])) cuis.Add(parray[1], new string[2]);
+            }
+
+
+            // If we want to calculate only SPECIFIC sty
+            MySqlConnection mylclcn = null;
+
+            string wh = String.Join ("','", cuis.Keys) ;
+            using (MySqlDataReader dataRdr = MyCommandExecutorDataReader($@"SELECT CUI, Name, STY FROM cuinamepopularity  where popularity>0 and CUI IN     ('{wh}'); ", mylclcn))
+            {
+                while (dataRdr.Read())
+                {
+                    string CUI = dataRdr.GetString(0);
+                    string Name = dataRdr.GetString(1);
+                    string STY = dataRdr.GetString(2);
+
+                    cuis[CUI][0] = Name;
+                    cuis[CUI][1] = STY;
+                }
+            }
+
+
+            List<string> resTxt = new List<string>();
+            resTxt.Add($"CUI;Name;STY;Similarity;SimilarCUI;SimilarName;SimilarSTY");
+            foreach (var item in contents)
+            {
+                string[] parray = item.Split(";");
+                string CUI = parray[0];
+                string SimilarCUI = parray[1];
+                string Similarity = parray[2];
+                if (cuis.ContainsKey(CUI) && cuis.ContainsKey(SimilarCUI))
+                {
+                    resTxt.Add($"{CUI};{cuis[CUI][0]};{cuis[CUI][1]};{Similarity};{SimilarCUI};{cuis[SimilarCUI][0]};{cuis[SimilarCUI][1]}");
+                }
+
+            }
+            File.WriteAllText(@"D:\PubMed\genes_nnFinal.csv", string.Join("\r\n", resTxt));
+
+
+
+        }
     }
 
 

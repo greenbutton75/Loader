@@ -36,6 +36,7 @@
             this.button4 = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.button58 = new System.Windows.Forms.Button();
             this.panel3 = new System.Windows.Forms.Panel();
             this.button50 = new System.Windows.Forms.Button();
             this.button49 = new System.Windows.Forms.Button();
@@ -113,12 +114,14 @@
             this.radioButton2 = new System.Windows.Forms.RadioButton();
             this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.button59 = new System.Windows.Forms.Button();
             this.label10 = new System.Windows.Forms.Label();
             this.textBox5 = new System.Windows.Forms.TextBox();
             this.button57 = new System.Windows.Forms.Button();
             this.button56 = new System.Windows.Forms.Button();
             this.button55 = new System.Windows.Forms.Button();
-            this.button58 = new System.Windows.Forms.Button();
+            this.button60 = new System.Windows.Forms.Button();
+            this.button61 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -256,6 +259,16 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "tabPage1";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // button58
+            // 
+            this.button58.Location = new System.Drawing.Point(611, 351);
+            this.button58.Name = "button58";
+            this.button58.Size = new System.Drawing.Size(161, 52);
+            this.button58.TabIndex = 38;
+            this.button58.Text = "For Gene Clusters";
+            this.button58.UseVisualStyleBackColor = true;
+            this.button58.Click += new System.EventHandler(this.button58_Click);
             // 
             // panel3
             // 
@@ -1112,6 +1125,9 @@
             // 
             // tabPage3
             // 
+            this.tabPage3.Controls.Add(this.button61);
+            this.tabPage3.Controls.Add(this.button60);
+            this.tabPage3.Controls.Add(this.button59);
             this.tabPage3.Controls.Add(this.label10);
             this.tabPage3.Controls.Add(this.textBox5);
             this.tabPage3.Controls.Add(this.button57);
@@ -1124,6 +1140,16 @@
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "AUX";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // button59
+            // 
+            this.button59.Location = new System.Drawing.Point(514, 523);
+            this.button59.Name = "button59";
+            this.button59.Size = new System.Drawing.Size(352, 189);
+            this.button59.TabIndex = 5;
+            this.button59.Text = "Parse JSON with blocks";
+            this.button59.UseVisualStyleBackColor = true;
+            this.button59.Click += new System.EventHandler(this.button59_Click);
             // 
             // label10
             // 
@@ -1173,15 +1199,25 @@
             this.button55.UseVisualStyleBackColor = true;
             this.button55.Click += new System.EventHandler(this.button55_Click);
             // 
-            // button58
+            // button60
             // 
-            this.button58.Location = new System.Drawing.Point(611, 351);
-            this.button58.Name = "button58";
-            this.button58.Size = new System.Drawing.Size(161, 52);
-            this.button58.TabIndex = 38;
-            this.button58.Text = "For Gene Clusters";
-            this.button58.UseVisualStyleBackColor = true;
-            this.button58.Click += new System.EventHandler(this.button58_Click);
+            this.button60.Location = new System.Drawing.Point(1122, 788);
+            this.button60.Name = "button60";
+            this.button60.Size = new System.Drawing.Size(260, 238);
+            this.button60.TabIndex = 6;
+            this.button60.Text = "Parse JSON with genes similarity";
+            this.button60.UseVisualStyleBackColor = true;
+            this.button60.Click += new System.EventHandler(this.button60_Click);
+            // 
+            // button61
+            // 
+            this.button61.Location = new System.Drawing.Point(1522, 822);
+            this.button61.Name = "button61";
+            this.button61.Size = new System.Drawing.Size(375, 245);
+            this.button61.TabIndex = 7;
+            this.button61.Text = "Read D:\\PubMed\\genes_nn.csv";
+            this.button61.UseVisualStyleBackColor = true;
+            this.button61.Click += new System.EventHandler(this.button61_Click);
             // 
             // Form1
             // 
@@ -1306,6 +1342,9 @@
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox textBox5;
         private System.Windows.Forms.Button button58;
+        private System.Windows.Forms.Button button59;
+        private System.Windows.Forms.Button button60;
+        private System.Windows.Forms.Button button61;
     }
 }
 
