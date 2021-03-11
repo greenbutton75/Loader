@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
@@ -923,13 +924,13 @@ Inflammatory bowel disease, type 1 diabetes, and VTE might predispose to RA deve
                 if (mylclcn != null && mycn.State == ConnectionState.Open) mylclcn.Close();
             }
 
- 
+
             lock (locker)
             {
                 Console.WriteLine($"writes Page {page}  {concepts.Count }");
                 try
                 {
-                    var t = concepts.Where(x => x.Value.Count>1).Select(x => string.Join(" ", x.Value)).ToList();
+                    var t = concepts.Where(x => x.Value.Count > 1).Select(x => string.Join(" ", x.Value)).ToList();
                     File.AppendAllText(@"D:\PubMed\only_CUI_GeneClustering.txt", string.Join("\r\n", t));
                 }
                 catch (Exception)
@@ -3261,6 +3262,23 @@ new Task(() => ProcessEntityChunk(333000001,343000000))
         private void button25_Click(object sender, EventArgs e)
         {
             //Testilka
+
+
+            string s = "wert asd,rtyy,eert asd ffgg tttt asd 11,asd 11";
+            string s2 = "asd 11,rtyy,eert asd tata tttt asd asd dada";
+            string search = "asd";
+            Dictionary<string, int> freq = new Dictionary<string, int>();
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            getFastSearchString(s, search, freq);
+            getFastSearchString(s2, search, freq);
+
+            sw.Stop();
+            MessageBox.Show(sw.ElapsedMilliseconds.ToString());
+            return;
+
             string myCharCollection = "[acute disseminated form of C0023381 (C0023381)].";
 
             myCharCollection = myCharCollection.Replace("'", "");
@@ -3291,6 +3309,39 @@ new Task(() => ProcessEntityChunk(333000001,343000000))
                 return;
             }
 
+        }
+
+        private static void getFastSearchString(string s, string search, Dictionary<string, int> freq)
+        {
+            string w;
+            int searchLen = search.Length;
+            char[] delims = { ' ', ',', '(', ')', '.', '!' };
+            var wrd = new StringBuilder();
+
+            foreach (var index in s.AllIndicesOf(search))
+            {
+                wrd = new StringBuilder();
+                foreach (char _c in s.Substring(index + searchLen))
+                {
+                    w = wrd.ToString();
+                    if (delims.Contains(_c))
+                    {
+                        if (w != "")
+                        {
+                            freq.TryGetValue(w, out int value);
+                            freq[w] = value + 1;
+                            break;
+                        }
+                    }
+                    else wrd.Append(_c);
+                }
+            }
+            w = wrd.ToString();
+            if (w != "")
+            {
+                freq.TryGetValue(w, out int value);
+                freq[w] = value + 1;
+            }
         }
 
         private void dataGridView2_RowPrePaint(object sender, DataGridViewRowPrePaintEventArgs e)
@@ -6889,6 +6940,10 @@ top_additional.txt
                                 {
                                     string CUI = GetCell(currentWorksheet, rowNumber, 1).Trim();
                                     string Gender = GetCell(currentWorksheet, rowNumber, 5).Trim().ToLower();
+                                    string urgency = GetCell(currentWorksheet, rowNumber, 6).Trim().ToLower();
+                                    if (!string.IsNullOrEmpty(urgency)) urgency = "very high";
+
+                                    if (CUI.Length == 8 && CUI.StartsWith("C"))
                                     {
                                         AllCIUs.AddIfNotExist(CUI);
 
@@ -6899,9 +6954,9 @@ top_additional.txt
                                             UniqueSimpleNames.AddIfNotExist(CUI, simpleName);
                                         }
 
-                                        if (Gender.InList("female", "male"))
+                                        if (Gender.InList("female", "male") || !string.IsNullOrEmpty(urgency))
                                         {
-                                            string cmd = $"INSERT INTO diseaseSpec( CUI, Urgency, PrefCUI, ReqCUI, Gender,Recommendation,S1,S2,S3, SName1,SName2,SName3) VALUES ('{CUI.SQLString()}','','','','{Gender.SQLString()}','','','','','','','');\r\n";
+                                            string cmd = $"INSERT INTO diseaseSpec( CUI, Urgency, PrefCUI, ReqCUI, Gender,Recommendation,S1,S2,S3, SName1,SName2,SName3) VALUES ('{CUI.SQLString()}','{urgency.SQLString()}','','','{Gender.SQLString()}','','','','','','','');\r\n";
                                             cmds.Add(cmd);
                                         }
                                     }
@@ -6916,6 +6971,8 @@ top_additional.txt
                                 {
                                     string CUI = GetCell(currentWorksheet, rowNumber, 1).Trim();
                                     string Gender = GetCell(currentWorksheet, rowNumber, 5).Trim().ToLower();
+                                    string urgency = GetCell(currentWorksheet, rowNumber, 6).Trim().ToLower();
+                                    if (!string.IsNullOrEmpty(urgency)) urgency = "very high";
 
                                     if (CUI.Length == 8 && CUI.StartsWith("C"))
                                     {
@@ -6927,9 +6984,9 @@ top_additional.txt
                                             SimpleName2cui.AddIfNotExist(simpleName, CUI);
                                             UniqueSimpleNames.AddIfNotExist(CUI, simpleName);
                                         }
-                                        if (Gender.InList("female", "male"))
+                                        if (Gender.InList("female", "male") || !string.IsNullOrEmpty(urgency))
                                         {
-                                            string cmd = $"INSERT INTO diseaseSpec( CUI, Urgency, PrefCUI, ReqCUI, Gender,Recommendation,S1,S2,S3, SName1,SName2,SName3) VALUES ('{CUI.SQLString()}','','','','{Gender.SQLString()}','','','','','','','');\r\n";
+                                            string cmd = $"INSERT INTO diseaseSpec( CUI, Urgency, PrefCUI, ReqCUI, Gender,Recommendation,S1,S2,S3, SName1,SName2,SName3) VALUES ('{CUI.SQLString()}','{urgency.SQLString()}','','','{Gender.SQLString()}','','','','','','','');\r\n";
                                             cmds.Add(cmd);
                                         }
                                     }
@@ -8106,7 +8163,7 @@ top_additional.txt
         private void button55_Click(object sender, EventArgs e)
         {
             string folderPath = @"D:\Work\NewPS\Address\IPAddress";
-            Dictionary<string, int> counter = new   Dictionary<string, int>();
+            Dictionary<string, int> counter = new Dictionary<string, int>();
             Dictionary<string, int> counterPS = new Dictionary<string, int>();
             Dictionary<string, int> counterLEXE = new Dictionary<string, int>();
 
@@ -8140,7 +8197,7 @@ top_additional.txt
                         else
                             counterPS.Add(line, 1);
                     }
-                    
+
                 }
             }
 
@@ -8229,8 +8286,8 @@ top_additional.txt
                 {
                     if (reason != "" || email != "")
                     {
-                        if (!reason.Contains ( "temporarily deferred due to unexpected volume or user complaints"))
-                        res.Add($"{email}\t{reason}");
+                        if (!reason.Contains("temporarily deferred due to unexpected volume or user complaints"))
+                            res.Add($"{email}\t{reason}");
 
                         reason = "";
                         email = "";
@@ -8247,9 +8304,9 @@ top_additional.txt
                     email = line;
                     cnt = 0;
                 }
-                if (line.Contains ( "Remote server replied") || line.Contains ("Error Description") || line.Contains("Error:"))
+                if (line.Contains("Remote server replied") || line.Contains("Error Description") || line.Contains("Error:"))
                 {
-                    reason =line.After (":").Trim();
+                    reason = line.After(":").Trim();
                 }
 
             }
@@ -8370,10 +8427,10 @@ top_additional.txt
                 string nBlock = item["nBlock"].ToString();
 
                 JArray txs = (JArray)item["transactions"];
-                
+
                 foreach (var itemT in txs)
                 {
-                    string txhex= itemT["txhex"].ToString();
+                    string txhex = itemT["txhex"].ToString();
                     string coinbase = itemT["coinbase"].ToString();
 
                     string l = $"{nBlock},{txhex},{coinbase}";
@@ -8382,7 +8439,7 @@ top_additional.txt
             }
 
 
-     
+
 
         }
 
@@ -8390,7 +8447,7 @@ top_additional.txt
         {
 
             string file = @"D:\PubMed\genes_nn.json";
-            string contents = File.ReadAllText (file);
+            string contents = File.ReadAllText(file);
 
             var jRes = JObject.Parse(contents);
             IList<string> keys = jRes.Properties().Select(p => p.Name).ToList();
@@ -8403,7 +8460,7 @@ top_additional.txt
                 JArray ja = jRes[item] as JArray;
                 foreach (JArray jitem in ja)
                 {
-                    string c = jitem[0].ToString ();
+                    string c = jitem[0].ToString();
                     string p = jitem[1].ToString();
                     if (c.StartsWith("C")) resTxt.Add($"{item};{c};{p}");
                 }
@@ -8416,7 +8473,7 @@ top_additional.txt
 
         private void button61_Click(object sender, EventArgs e)
         {
-           string[] contents = File.ReadAllLines(@"D:\PubMed\genes_nn.csv");
+            string[] contents = File.ReadAllLines(@"D:\PubMed\genes_nn.csv");
             Dictionary<string, string[]> cuis = new Dictionary<string, string[]>();
 
 
@@ -8424,7 +8481,7 @@ top_additional.txt
             {
                 string[] parray = item.Split(";");
 
-                if (!cuis.ContainsKey(parray[0]) )   cuis.Add (parray[0], new string[2]); 
+                if (!cuis.ContainsKey(parray[0])) cuis.Add(parray[0], new string[2]);
                 if (!cuis.ContainsKey(parray[1])) cuis.Add(parray[1], new string[2]);
             }
 
@@ -8432,7 +8489,7 @@ top_additional.txt
             // If we want to calculate only SPECIFIC sty
             MySqlConnection mylclcn = null;
 
-            string wh = String.Join ("','", cuis.Keys) ;
+            string wh = String.Join("','", cuis.Keys);
             using (MySqlDataReader dataRdr = MyCommandExecutorDataReader($@"SELECT CUI, Name, STY FROM cuinamepopularity  where popularity>0 and CUI IN     ('{wh}'); ", mylclcn))
             {
                 while (dataRdr.Read())
